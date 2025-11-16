@@ -39,9 +39,12 @@ const authLink = setContext(async (_, { headers }) => {
 })
 
 // Error link - xử lý lỗi GraphQL
-const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
-  if (graphQLErrors) {
-    graphQLErrors.forEach(({ message, locations, path }) => {
+const errorLink = onError((errorResponse: any) => {
+  const { graphQLErrors, networkError, response } = errorResponse
+
+  // Chỉ log error nếu không có data
+  if (graphQLErrors && !response?.data) {
+    graphQLErrors.forEach(({ message, locations, path }: any) => {
       console.error(
         `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
       )

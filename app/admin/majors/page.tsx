@@ -1,33 +1,51 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
-import { useQuery } from '@apollo/client/react'
-import { GET_LIST_TEACHERS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin.queries'
-import { Plus, Pencil, Trash2, Search, RefreshCw, Upload, Download, Filter, Eye } from 'lucide-react'
+import { useQuery, useMutation } from '@apollo/client/react'
+import { GET_ALL_MAJORS, GET_ALL_FACULTIES } from '@/lib/graphql/queries/admin'
+import { DELETE_MAJOR } from '@/lib/graphql/mutations/admin.mutations'
+import { Plus, Edit, Trash2, RefreshCw, Search, Filter } from 'lucide-react'
+import Loading from '@/components/common/Loading'
+import { MajorFormDialog } from '@/components/admin/majors/major-form-dialog'
 
-interface Teacher {
+interface Major {
   id: string
-  email: string
-  username: string
-  gender: string
-  majorCode: string
-  semesterCode: string
+  title: string
+  facultyCode: string
   createdAt: string
   updatedAt: string
 }
 
-export function TeacherManagement() {
-  const router = useRouter()
+interface Faculty {
+  id: string
+  title: string
+}
+
+interface MajorsData {
+  getAllMajors: {
+    total: number
+    data: Major[]
+  }
+}
+
+interface FacultiesData {
+  getAllFaculties: {
+    total: number
+    data: Faculty[]
+  }
+}
+
+export default function MajorsManagementPage() {
   const [searchInput, setSearchInput] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedMajor, setSelectedMajor] = useState<string>('all')
-  const [selectedSemester, setSelectedSemester] = useState<string>('all')
+  const [selectedFaculty, setSelectedFaculty] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
+  const [selectedMajor, setSelectedMajor] = useState<Major | null>(null)
 
-  // Fetch semesters
-  const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
+  // Fetch faculties for filter
+  const { data: facultiesData } = useQuery<FacultiesData>(GET_ALL_FACULTIES, {
     variables: {
       search: {
         pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
@@ -36,26 +54,24 @@ export function TeacherManagement() {
     },
   })
 
-  const semesters = useMemo(() => {
-    return semestersData?.getAllSemesters?.data || []
-  }, [semestersData])
+  const faculties = useMemo(() => {
+    return facultiesData?.getAllFaculties?.data || []
+  }, [facultiesData])
 
-  // Build filters for backend
+  // Build filters
   const buildFilters = () => {
     const filters: any[] = []
 
-    // Semester filter
-    if (selectedSemester !== 'all') {
+    if (selectedFaculty !== 'all') {
       filters.push({
         condition: {
-          field: 'semester_code',
+          field: 'faculty_code',
           operator: 'EQUAL',
-          values: [selectedSemester],
+          values: [selectedFaculty],
         },
       })
     }
 
-    // Search filter
     if (searchTerm.trim()) {
       filters.push({
         group: {
@@ -63,14 +79,7 @@ export function TeacherManagement() {
           filters: [
             {
               condition: {
-                field: 'username',
-                operator: 'LIKE',
-                values: [searchTerm.trim()],
-              },
-            },
-            {
-              condition: {
-                field: 'email',
+                field: 'title',
                 operator: 'LIKE',
                 values: [searchTerm.trim()],
               },
@@ -87,29 +96,18 @@ export function TeacherManagement() {
       })
     }
 
-    // Major filter
-    if (selectedMajor !== 'all') {
-      filters.push({
-        condition: {
-          field: 'majorCode',
-          operator: 'EQUAL',
-          values: [selectedMajor],
-        },
-      })
-    }
-
     return filters
   }
 
-  // Fetch teachers
-  const { data, loading, refetch } = useQuery(GET_LIST_TEACHERS, {
+  // Fetch majors
+  const { data, loading, refetch } = useQuery<MajorsData>(GET_ALL_MAJORS, {
     variables: {
       search: {
         pagination: {
           page: currentPage,
           pageSize: pageSize,
           sortBy: 'created_at',
-          descending: true
+          descending: true,
         },
         filters: buildFilters(),
       },
@@ -117,41 +115,20 @@ export function TeacherManagement() {
     fetchPolicy: 'network-only',
   })
 
-  const teachers: Teacher[] = (data as any)?.getListTeachers?.data || []
-  const total: number = (data as any)?.getListTeachers?.total || 0
+  const majors: Major[] = data?.getAllMajors?.data || []
+  const total: number = data?.getAllMajors?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
-  // Fetch all teachers for filter options
-  const { data: allData } = useQuery(GET_LIST_TEACHERS, {
-    variables: {
-      search: {
-        pagination: {
-          page: 1,
-          pageSize: 1000,
-          sortBy: 'created_at',
-          descending: true
-        },
-        filters: [],
-      },
+  const [deleteMajor] = useMutation(DELETE_MAJOR, {
+    onCompleted: () => {
+      refetch()
     },
-    fetchPolicy: 'cache-first',
+    onError: (error) => {
+      alert(`Lỗi khi xóa chuyên ngành: ${error.message}`)
+    },
   })
 
-  const allTeachers: Teacher[] = (allData as any)?.getListTeachers?.data || []
-  const majors = Array.from(new Set(allTeachers.map(t => t.majorCode))).filter(Boolean)
-
   const handleRefresh = () => {
-    refetch()
-  }
-
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    refetch()
-  }
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
-    setCurrentPage(1)
     refetch()
   }
 
@@ -166,32 +143,69 @@ export function TeacherManagement() {
     }
   }
 
-  const handleMajorChange = (value: string) => {
-    setSelectedMajor(value)
-    setCurrentPage(1)
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
   }
 
-  const handleImport = () => {
-    // TODO: Implement import dialog
-    alert('Import Excel - Backend sẽ xử lý')
+  const handleCreate = () => {
+    setSelectedMajor(null)
+    setIsFormDialogOpen(true)
   }
 
-  const handleExport = () => {
-    // TODO: Implement export
-    alert('Export Excel - Backend sẽ xử lý')
+  const handleEdit = (major: Major) => {
+    setSelectedMajor(major)
+    setIsFormDialogOpen(true)
+  }
+
+  const handleDelete = async (major: Major) => {
+    if (confirm(`Bạn có chắc chắn muốn xóa chuyên ngành "${major.title}"?`)) {
+      try {
+        await deleteMajor({
+          variables: {
+            id: major.id,
+          },
+        })
+      } catch (error) {
+        // Error is handled by onError callback
+      }
+    }
+  }
+
+  const getFacultyName = (facultyCode: string) => {
+    const faculty = faculties.find((f) => f.id === facultyCode)
+    return faculty?.title || facultyCode
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600 dark:text-gray-400">Đang tải...</div>
+      <div className="flex items-center justify-center h-full">
+        <Loading size="lg" />
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      {/* Actions Bar */}
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Quản lý Chuyên ngành
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Quản lý danh sách chuyên ngành
+          </p>
+        </div>
+        <button
+          onClick={handleCreate}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          Tạo chuyên ngành
+        </button>
+      </div>
+
+      {/* Filters */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Search */}
         <div className="relative flex-1 flex gap-2">
@@ -199,7 +213,7 @@ export function TeacherManagement() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm kiếm giảng viên..."
+              placeholder="Tìm kiếm chuyên ngành..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}
@@ -216,31 +230,22 @@ export function TeacherManagement() {
 
         {/* Filters */}
         <div className="flex flex-wrap gap-2">
-          {/* Semester Filter */}
+          {/* Faculty Filter */}
           <div className="relative">
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <select
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
+              value={selectedFaculty}
+              onChange={(e) => {
+                setSelectedFaculty(e.target.value)
+                setCurrentPage(1)
+              }}
               className="pl-9 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
             >
-              <option value="all">Tất cả học kỳ</option>
-              {semesters.map((semester: any) => (
-                <option key={semester.id} value={semester.id}>{semester.title}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Major Filter */}
-          <div className="relative">
-            <select
-              value={selectedMajor}
-              onChange={(e) => handleMajorChange(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
-            >
               <option value="all">Tất cả khoa</option>
-              {majors.map(major => (
-                <option key={major} value={major}>{major}</option>
+              {faculties.map((faculty) => (
+                <option key={faculty.id} value={faculty.id}>
+                  {faculty.title}
+                </option>
               ))}
             </select>
           </div>
@@ -253,53 +258,20 @@ export function TeacherManagement() {
           >
             <RefreshCw className="w-5 h-5" />
           </button>
-
-          {/* Import Button */}
-          <button
-            onClick={handleImport}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Upload className="w-5 h-5" />
-            Import
-          </button>
-
-          {/* Export Button */}
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Download className="w-5 h-5" />
-            Export
-          </button>
-
-          {/* Create Button */}
-          <button
-            onClick={() => alert('TODO: Create teacher dialog')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Thêm giảng viên
-          </button>
         </div>
       </div>
 
-      {/* Teachers Table */}
+      {/* Majors Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Mã GV
+                  Mã chuyên ngành
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Họ tên
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Email
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Giới tính
+                  Tên chuyên ngành
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Khoa
@@ -310,66 +282,48 @@ export function TeacherManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {teachers.length === 0 ? (
+              {majors.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={4} className="px-6 py-12 text-center">
                     <div className="text-gray-500 dark:text-gray-400">
-                      {searchTerm || selectedMajor !== 'all'
-                        ? 'Không tìm thấy giảng viên nào'
-                        : 'Chưa có giảng viên nào'}
+                      {searchTerm || selectedFaculty !== 'all'
+                        ? 'Không tìm thấy chuyên ngành nào'
+                        : 'Chưa có chuyên ngành nào'}
                     </div>
                   </td>
                 </tr>
               ) : (
-                teachers.map((teacher) => (
-                  <tr key={teacher.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                majors.map((major) => (
+                  <tr key={major.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {teacher.id}
+                        {major.id}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {teacher.username}
+                        {major.title}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {teacher.email}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {teacher.gender === 'male' ? 'Nam' : teacher.gender === 'female' ? 'Nữ' : 'Khác'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900 dark:text-gray-100">
-                        {teacher.majorCode}
+                        {getFacultyName(major.facultyCode)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* Edit */}
                         <button
-                          onClick={() => {
-                            const teacherData = { ...teacher, backUrl: '/admin/users' }
-                            sessionStorage.setItem('teacherDetailData', JSON.stringify(teacherData))
-                            router.push(`/admin/teachers/${teacher.id}`)
-                          }}
-                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => alert('TODO: Edit teacher')}
+                          onClick={() => handleEdit(major)}
                           className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Chỉnh sửa"
                         >
-                          <Pencil className="w-4 h-4" />
+                          <Edit className="w-4 h-4" />
                         </button>
+
+                        {/* Delete */}
                         <button
-                          onClick={() => alert('TODO: Delete teacher')}
+                          onClick={() => handleDelete(major)}
                           className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Xóa"
                         >
@@ -388,18 +342,20 @@ export function TeacherManagement() {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          Hiển thị {teachers.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, total)} của {total} giảng viên
+          Hiển thị {majors.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
+          {Math.min(currentPage * pageSize, total)} của {total} chuyên ngành
         </div>
 
         <div className="flex items-center gap-4">
           {/* Page Size Selector */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 dark:text-gray-400">
-              Số dòng:
-            </label>
+            <label className="text-sm text-gray-600 dark:text-gray-400">Số dòng:</label>
             <select
               value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value))
+                setCurrentPage(1)
+              }}
               className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value={10}>10</option>
@@ -458,6 +414,14 @@ export function TeacherManagement() {
           </div>
         </div>
       </div>
+
+      {/* Major Form Dialog */}
+      <MajorFormDialog
+        isOpen={isFormDialogOpen}
+        onClose={() => setIsFormDialogOpen(false)}
+        major={selectedMajor}
+        onSuccess={refetch}
+      />
     </div>
   )
 }

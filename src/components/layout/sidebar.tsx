@@ -39,8 +39,8 @@ export default function Sidebar({ userRole }: SidebarProps) {
   const { profile } = userRole === 'teacher' ? useMyTeacherProfile() : { profile: null }
 
   // Lấy unique roles từ profile (chỉ roles đang hoạt động)
-  const userRoles = userRole === 'teacher' && profile?.roles
-    ? Array.from(new Set(profile.roles.filter(r => r.activate).map(r => r.role as RoleType)))
+  const userRoles: RoleType[] = userRole === 'teacher' && profile?.roles
+    ? Array.from(new Set(profile.roles.filter((r: any) => r.activate).map((r: any) => r.role as RoleType)))
     : []
 
   return (

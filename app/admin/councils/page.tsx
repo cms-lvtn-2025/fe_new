@@ -1,33 +1,30 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery } from '@apollo/client/react'
-import { GET_LIST_STUDENTS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin.queries'
-import { Plus, Pencil, Trash2, Search, RefreshCw, Upload, Download, Filter, Eye } from 'lucide-react'
+import { useQuery, useMutation } from '@apollo/client/react'
+import { GET_DEFENCE_SCHEDULE, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
+import { DELETE_COUNCIL } from '@/lib/graphql/mutations/admin.mutations'
+import { Plus, Eye, Trash2, RefreshCw, Search, Filter, Download } from 'lucide-react'
+import Loading from '@/components/common/Loading'
+import type { Council } from '@/types/defence'
 
-interface Student {
-  id: string
-  email: string
-  username: string
-  phone?: string
-  gender: string
-  majorCode: string
-  classCode: string
-  semesterCode: string
-  createdAt: string
-  updatedAt: string
+interface CouncilsData {
+  getAllCouncils: {
+    total: number
+    data: Council[]
+  }
 }
 
-export function StudentManagement() {
+export default function CouncilsManagementPage() {
   const router = useRouter()
   const [searchInput, setSearchInput] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedClass, setSelectedClass] = useState<string>('all')
-  const [selectedMajor, setSelectedMajor] = useState<string>('all')
   const [selectedSemester, setSelectedSemester] = useState<string>('all')
+  const [selectedMajor, setSelectedMajor] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Fetch semesters
   const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
@@ -43,11 +40,18 @@ export function StudentManagement() {
     return semestersData?.getAllSemesters?.data || []
   }, [semestersData])
 
-  // Build filters for backend
+  // Set default semester to latest when data is loaded
+  useEffect(() => {
+    if (!isInitialized && semesters.length > 0) {
+      setSelectedSemester(semesters[0].id)
+      setIsInitialized(true)
+    }
+  }, [semesters, isInitialized])
+
+  // Build filters
   const buildFilters = () => {
     const filters: any[] = []
 
-    // Semester filter
     if (selectedSemester !== 'all') {
       filters.push({
         condition: {
@@ -58,7 +62,16 @@ export function StudentManagement() {
       })
     }
 
-    // Search filter - tìm trong nhiều fields
+    if (selectedMajor !== 'all') {
+      filters.push({
+        condition: {
+          field: 'major_code',
+          operator: 'EQUAL',
+          values: [selectedMajor],
+        },
+      })
+    }
+
     if (searchTerm.trim()) {
       filters.push({
         group: {
@@ -66,14 +79,7 @@ export function StudentManagement() {
           filters: [
             {
               condition: {
-                field: 'username',
-                operator: 'LIKE',
-                values: [searchTerm.trim()],
-              },
-            },
-            {
-              condition: {
-                field: 'email',
+                field: 'title',
                 operator: 'LIKE',
                 values: [searchTerm.trim()],
               },
@@ -90,40 +96,18 @@ export function StudentManagement() {
       })
     }
 
-    // Class filter
-    if (selectedClass !== 'all') {
-      filters.push({
-        condition: {
-          field: 'classCode',
-          operator: 'EQUAL',
-          values: [selectedClass],
-        },
-      })
-    }
-
-    // Major filter
-    if (selectedMajor !== 'all') {
-      filters.push({
-        condition: {
-          field: 'majorCode',
-          operator: 'EQUAL',
-          values: [selectedMajor],
-        },
-      })
-    }
-
     return filters
   }
 
-  // Fetch students
-  const { data, loading, refetch } = useQuery(GET_LIST_STUDENTS, {
+  // Fetch councils
+  const { data, loading, error, refetch } = useQuery<CouncilsData>(GET_DEFENCE_SCHEDULE, {
     variables: {
       search: {
         pagination: {
           page: currentPage,
           pageSize: pageSize,
           sortBy: 'created_at',
-          descending: true
+          descending: true,
         },
         filters: buildFilters(),
       },
@@ -131,48 +115,40 @@ export function StudentManagement() {
     fetchPolicy: 'network-only',
   })
 
-  const students: Student[] = (data as any)?.getListStudents?.data || []
-  const total: number = (data as any)?.getListStudents?.total || 0
+  const councils: Council[] = data?.getAllCouncils?.data || []
+  const total: number = data?.getAllCouncils?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
-  // Fetch all students for filter options (without pagination)
-  const { data: allData } = useQuery(GET_LIST_STUDENTS, {
-    variables: {
-      search: {
-        pagination: {
-          page: 1,
-          pageSize: 1000,
-          sortBy: 'created_at',
-          descending: true
-        },
-        filters: [],
-      },
-    },
-    fetchPolicy: 'cache-first',
-  })
+  // Only show error if there's no data
+  if (error && !data) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <div className="text-red-600 dark:text-red-400 font-medium mb-2">
+          Lỗi khi tải dữ liệu lịch bảo vệ
+        </div>
+        <div className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+          {error.message}
+        </div>
+        <button
+          onClick={() => refetch()}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          Thử lại
+        </button>
+      </div>
+    )
+  }
 
-  const allStudents: Student[] = (allData as any)?.getListStudents?.data || []
-
-  // Get unique classes and majors for filters
-  const classes = Array.from(new Set(allStudents.map(s => s.classCode))).filter(Boolean)
-  const majors = Array.from(new Set(allStudents.map(s => s.majorCode))).filter(Boolean)
+  // Get unique majors
+  const majors = useMemo(() => {
+    const majorSet = new Set(councils.map((c) => c.majorCode))
+    return Array.from(majorSet).sort()
+  }, [councils])
 
   const handleRefresh = () => {
     refetch()
   }
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-    refetch()
-  }
-
-  const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
-    setCurrentPage(1)
-    refetch()
-  }
-
-  // Handle search submit
   const handleSearchSubmit = () => {
     setSearchTerm(searchInput)
     setCurrentPage(1)
@@ -184,37 +160,114 @@ export function StudentManagement() {
     }
   }
 
-  const handleClassChange = (value: string) => {
-    setSelectedClass(value)
-    setCurrentPage(1)
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
   }
 
-  const handleMajorChange = (value: string) => {
-    setSelectedMajor(value)
-    setCurrentPage(1)
+  const [deleteCouncil] = useMutation(DELETE_COUNCIL, {
+    onCompleted: () => {
+      refetch()
+    },
+    onError: (error) => {
+      alert(`Lỗi khi xóa hội đồng: ${error.message}`)
+    },
+  })
+
+  const handleViewDetail = (council: Council) => {
+    sessionStorage.setItem('councilDetailData', JSON.stringify({ ...council, backUrl: '/admin/councils' }))
+    router.push(`/admin/councils/${council.id}`)
   }
 
-  const handleImport = () => {
-    // TODO: Implement import dialog
-    alert('Import Excel - Backend sẽ xử lý')
+  const handleDelete = async (council: Council) => {
+    if (confirm(`Bạn có chắc chắn muốn xóa hội đồng "${council.title}"?`)) {
+      try {
+        await deleteCouncil({
+          variables: {
+            id: council.id,
+          },
+        })
+      } catch (error) {
+        // Error is handled by onError callback
+      }
+    }
   }
 
-  const handleExport = () => {
-    // TODO: Implement export
-    alert('Export Excel - Backend sẽ xử lý')
+  const handleExport = async () => {
+    try {
+      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+      const token = localStorage.getItem('accessToken')
+
+      const filters = buildFilters()
+      const response = await fetch(`${BACKEND_URL}/api/councils/export`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+        body: JSON.stringify({
+          filters: filters,
+          semesterCode: selectedSemester !== 'all' ? selectedSemester : undefined,
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Export failed')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `councils_${new Date().toISOString().split('T')[0]}.xlsx`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error exporting:', error)
+      alert('Lỗi khi xuất dữ liệu')
+    }
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600 dark:text-gray-400">Đang tải...</div>
+      <div className="flex items-center justify-center h-full">
+        <Loading size="lg" />
       </div>
     )
   }
 
   return (
     <div className="space-y-4">
-      {/* Actions Bar */}
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+            Quản lý Hội đồng
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-1">
+            Quản lý danh sách hội đồng bảo vệ
+          </p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExport}
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+          >
+            <Download className="w-5 h-5" />
+            Xuất Excel
+          </button>
+          <button
+            onClick={() => alert('TODO: Tạo hội đồng mới')}
+            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          >
+            <Plus className="w-5 h-5" />
+            Tạo hội đồng
+          </button>
+        </div>
+      </div>
+
+      {/* Filters */}
       <div className="flex flex-col lg:flex-row gap-4">
         {/* Search */}
         <div className="relative flex-1 flex gap-2">
@@ -222,7 +275,7 @@ export function StudentManagement() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Tìm kiếm sinh viên..."
+              placeholder="Tìm kiếm hội đồng..."
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               onKeyDown={handleSearchKeyDown}
@@ -244,26 +297,17 @@ export function StudentManagement() {
             <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
             <select
               value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
+              onChange={(e) => {
+                setSelectedSemester(e.target.value)
+                setCurrentPage(1)
+              }}
               className="pl-9 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
             >
               <option value="all">Tất cả học kỳ</option>
               {semesters.map((semester: any) => (
-                <option key={semester.id} value={semester.id}>{semester.title}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Class Filter */}
-          <div className="relative">
-            <select
-              value={selectedClass}
-              onChange={(e) => handleClassChange(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
-            >
-              <option value="all">Tất cả lớp</option>
-              {classes.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
+                <option key={semester.id} value={semester.id}>
+                  {semester.title}
+                </option>
               ))}
             </select>
           </div>
@@ -272,12 +316,17 @@ export function StudentManagement() {
           <div className="relative">
             <select
               value={selectedMajor}
-              onChange={(e) => handleMajorChange(e.target.value)}
+              onChange={(e) => {
+                setSelectedMajor(e.target.value)
+                setCurrentPage(1)
+              }}
               className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
             >
-              <option value="all">Tất cả khoa</option>
-              {majors.map(major => (
-                <option key={major} value={major}>{major}</option>
+              <option value="all">Tất cả ngành</option>
+              {majors.map((major) => (
+                <option key={major} value={major}>
+                  {major}
+                </option>
               ))}
             </select>
           </div>
@@ -290,59 +339,29 @@ export function StudentManagement() {
           >
             <RefreshCw className="w-5 h-5" />
           </button>
-
-          {/* Import Button */}
-          <button
-            onClick={handleImport}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Upload className="w-5 h-5" />
-            Import
-          </button>
-
-          {/* Export Button */}
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Download className="w-5 h-5" />
-            Export
-          </button>
-
-          {/* Create Button */}
-          <button
-            onClick={() => alert('TODO: Create student dialog')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Thêm sinh viên
-          </button>
         </div>
       </div>
 
-      {/* Students Table */}
+      {/* Councils Table */}
       <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  MSSV
+                  Mã HĐ
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Họ tên
+                  Tên hội đồng
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Email
+                  Ngành
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  SĐT
+                  Thời gian
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Lớp
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Khoa
+                  Số đề tài
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Thao tác
@@ -350,71 +369,64 @@ export function StudentManagement() {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-              {students.length === 0 ? (
+              {councils.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center">
+                  <td colSpan={6} className="px-6 py-12 text-center">
                     <div className="text-gray-500 dark:text-gray-400">
-                      {searchTerm || selectedClass !== 'all' || selectedMajor !== 'all'
-                        ? 'Không tìm thấy sinh viên nào'
-                        : 'Chưa có sinh viên nào'}
+                      {searchTerm || selectedMajor !== 'all' || selectedSemester !== 'all'
+                        ? 'Không tìm thấy hội đồng nào'
+                        : 'Chưa có hội đồng nào'}
                     </div>
                   </td>
                 </tr>
               ) : (
-                students.map((student) => (
-                  <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                councils.map((council) => (
+                  <tr key={council.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {student.id}
+                        {council.id}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {student.username}
+                        {council.title}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {student.email}
+                        {council.majorCode}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {student.phone || '-'}
-                      </span>
+                      {council.timeStart ? (
+                        <span className="text-sm text-gray-900 dark:text-gray-100">
+                          {new Date(council.timeStart).toLocaleString('vi-VN')}
+                        </span>
+                      ) : (
+                        <span className="text-sm text-gray-400 dark:text-gray-500">
+                          Chưa gán giờ
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-900 dark:text-gray-100">
-                        {student.classCode}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-900 dark:text-gray-100">
-                        {student.majorCode}
+                        {council.topicCouncils?.length || 0}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
+                        {/* View Detail */}
                         <button
-                          onClick={() => {
-                            const studentData = { ...student, backUrl: '/admin/users' }
-                            sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
-                            router.push(`/admin/students/${student.id}`)
-                          }}
-                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
+                          onClick={() => handleViewDetail(council)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Xem chi tiết"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
+
+                        {/* Delete */}
                         <button
-                          onClick={() => alert('TODO: Edit student')}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                          title="Chỉnh sửa"
-                        >
-                          <Pencil className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => alert('TODO: Delete student')}
+                          onClick={() => handleDelete(council)}
                           className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Xóa"
                         >
@@ -433,18 +445,20 @@ export function StudentManagement() {
       {/* Pagination */}
       <div className="flex items-center justify-between">
         <div className="text-sm text-gray-500 dark:text-gray-400">
-          Hiển thị {students.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, total)} của {total} sinh viên
+          Hiển thị {councils.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
+          {Math.min(currentPage * pageSize, total)} của {total} hội đồng
         </div>
 
         <div className="flex items-center gap-4">
           {/* Page Size Selector */}
           <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 dark:text-gray-400">
-              Số dòng:
-            </label>
+            <label className="text-sm text-gray-600 dark:text-gray-400">Số dòng:</label>
             <select
               value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
+              onChange={(e) => {
+                setPageSize(Number(e.target.value))
+                setCurrentPage(1)
+              }}
               className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             >
               <option value={10}>10</option>

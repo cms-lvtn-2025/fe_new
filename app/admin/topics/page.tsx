@@ -1,8 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import { useQuery } from '@apollo/client/react'
-import { GET_ALL_TOPICS } from '@/lib/graphql/queries/admin.queries'
+import { GET_ALL_TOPICS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { Plus, Eye, CheckCircle, XCircle, RefreshCw, Search, Filter, RotateCcw } from 'lucide-react'
 import { ViewTopicDialog } from '@/components/admin/topics/view-topic-dialog'
 import { ApproveTopicDialog } from '@/components/admin/topics/approve-topic-dialog'
@@ -20,6 +21,21 @@ interface Topic {
   teacherCode?: string
   createdAt: string
   updatedAt: string
+  topicCouncils?: {
+    id: string
+    stage: string
+    timeStart: string
+    timeEnd: string
+    supervisors?: Array<{
+      id: string
+      teacherSupervisorCode: string
+      teacher: {
+        id: string
+        username: string
+        email: string
+      }
+    }>
+  }[]
 }
 
 const STATUS_LABELS: Record<string, string> = {
@@ -42,10 +58,22 @@ const STATUS_COLORS: Record<string, string> = {
   REJECTED: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300',
 }
 
+const STAGE_LABELS: Record<string, string> = {
+  STAGE_DACN: 'Giai đoạn 1 (ĐACN)',
+  STAGE_LVTN: 'Giai đoạn 2 (LVTN)',
+}
+
+const STAGE_COLORS: Record<string, string> = {
+  STAGE_DACN: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  STAGE_LVTN: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900/30 dark:text-indigo-300',
+}
+
 export default function TopicsManagementPage() {
+  const router = useRouter()
   const [searchInput, setSearchInput] = useState('')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
+  const [selectedSemester, setSelectedSemester] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
 
@@ -54,9 +82,34 @@ export default function TopicsManagementPage() {
   const [rejectingTopic, setRejectingTopic] = useState<Topic | null>(null)
   const [movingTopic, setMovingTopic] = useState<Topic | null>(null)
 
+  // Fetch semesters
+  const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
+    variables: {
+      search: {
+        pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+        filters: [],
+      },
+    },
+  })
+
+  const semesters = useMemo(() => {
+    return semestersData?.getAllSemesters?.data || []
+  }, [semestersData])
+
   // Build filters for backend
   const buildFilters = () => {
     const filters: any[] = []
+
+    // Semester filter
+    if (selectedSemester !== 'all') {
+      filters.push({
+        condition: {
+          field: 'semester_code',
+          operator: 'EQUAL',
+          values: [selectedSemester],
+        },
+      })
+    }
 
     // Search filter
     if (searchTerm.trim()) {
@@ -216,13 +269,27 @@ export default function TopicsManagementPage() {
 
           {/* Filters */}
           <div className="flex flex-wrap gap-2">
-            {/* Status Filter */}
+            {/* Semester Filter */}
             <div className="relative">
               <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
               <select
+                value={selectedSemester}
+                onChange={(e) => setSelectedSemester(e.target.value)}
+                className="pl-9 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+              >
+                <option value="all">Tất cả học kỳ</option>
+                {semesters.map((semester: any) => (
+                  <option key={semester.id} value={semester.id}>{semester.title}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Status Filter */}
+            <div className="relative">
+              <select
                 value={selectedStatus}
                 onChange={(e) => handleStatusChange(e.target.value)}
-                className="pl-9 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+                className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
               >
                 <option value="all">Tất cả trạng thái</option>
                 {Object.entries(STATUS_LABELS).map(([key, label]) => (
@@ -256,13 +323,13 @@ export default function TopicsManagementPage() {
                   Tên đề tài
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Sinh viên
-                </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Giảng viên
+                  Giảng viên hướng dẫn
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Trạng thái
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Giai đoạn
                 </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Thao tác
@@ -293,27 +360,58 @@ export default function TopicsManagementPage() {
                         {topic.title}
                       </span>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {topic.studentCode || '-'}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {topic.teacherCode || '-'}
-                      </span>
+                    <td className="px-6 py-4">
+                      {topic.topicCouncils && topic.topicCouncils.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {topic.topicCouncils
+                            .flatMap((tc) => tc.supervisors || [])
+                            .filter((sup, index, self) =>
+                              index === self.findIndex((s) => s.teacher.id === sup.teacher.id)
+                            )
+                            .map((sup) => (
+                              <span
+                                key={sup.id}
+                                className="text-sm text-gray-700 dark:text-gray-300 bg-purple-50 dark:bg-purple-900/30 px-2 py-1 rounded"
+                              >
+                                {sup.teacher.username}
+                              </span>
+                            ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400 dark:text-gray-500">-</span>
+                      )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`px-2 py-1 text-xs font-medium rounded-full ${STATUS_COLORS[topic.status] || 'bg-gray-100 text-gray-800'}`}>
                         {STATUS_LABELS[topic.status] || topic.status}
                       </span>
                     </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {topic.topicCouncils && topic.topicCouncils.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {Array.from(new Set(topic.topicCouncils.map(tc => tc.stage))).map((stage) => (
+                            <span
+                              key={stage}
+                              className={`px-2 py-1 text-xs font-medium rounded-full ${STAGE_COLORS[stage] || 'bg-gray-100 text-gray-800'}`}
+                            >
+                              {STAGE_LABELS[stage] || stage}
+                            </span>
+                          ))}
+                        </div>
+                      ) : (
+                        <span className="text-sm text-gray-400 dark:text-gray-500">-</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        {/* View */}
+                        {/* View Detail */}
                         <button
-                          onClick={() => setViewingTopic(topic)}
-                          className="p-2 text-gray-600 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                          onClick={() => {
+                            const topicData = { ...topic, backUrl: '/admin/topics' }
+                            sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
+                            router.push(`/admin/topics/${topic.id}`)
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Xem chi tiết"
                         >
                           <Eye className="w-4 h-4" />

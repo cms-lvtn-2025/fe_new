@@ -192,6 +192,20 @@ export const DELETE_COUNCIL = gql`
   }
 `
 
+export const ASSIGN_TOPIC_TO_COUNCIL = gql`
+  mutation AssignTopicToCouncil($topicCouncilId: ID!, $councilId: ID!) {
+    assignTopicToCouncil(topicCouncilId: $topicCouncilId, councilId: $councilId) {
+      id
+      title
+      stage
+      topicCode
+      councilCode
+      timeStart
+      timeEnd
+    }
+  }
+`
+
 // ============================================
 // TOPIC MANAGEMENT
 // ============================================
