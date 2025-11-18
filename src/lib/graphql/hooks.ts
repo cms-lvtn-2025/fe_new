@@ -61,6 +61,29 @@ import {
   REJECT_TOPIC,
   UPDATE_TOPIC,
   DELETE_TOPIC,
+  // Department Lecturer queries
+  GET_DEPARTMENT_TEACHERS,
+  GET_DEPARTMENT_STUDENTS,
+  GET_DEPARTMENT_TOPICS,
+  GET_DEPARTMENT_TOPIC_DETAIL,
+  GET_DEPARTMENT_ENROLLMENTS,
+  GET_DEPARTMENT_ENROLLMENT_DETAIL,
+  GET_DEPARTMENT_COUNCILS,
+  GET_DEPARTMENT_COUNCIL_DETAIL,
+  GET_DEPARTMENT_DEFENCES,
+  GET_DEPARTMENT_GRADE_DEFENCES,
+  GET_DEPARTMENT_DEFENCE_SCHEDULE,
+  GET_DEPARTMENT_SEMESTERS,
+  GET_DEPARTMENT_MAJORS,
+  GET_DEPARTMENT_FACULTIES,
+  // Department Lecturer mutations
+  APPROVE_TOPIC_STAGE1,
+  REJECT_TOPIC_STAGE1,
+  ASSIGN_TOPIC_TO_COUNCIL,
+  CREATE_COUNCIL,
+  UPDATE_DEPARTMENT_COUNCIL,
+  ADD_DEFENCE_TO_COUNCIL,
+  REMOVE_DEFENCE_FROM_COUNCIL,
 } from "./queries"
 
 // ============================================
@@ -810,4 +833,399 @@ export function useDeleteTopic() {
   })
 
   return { deleteTopic, loading, error }
+}
+
+// ============================================
+// DEPARTMENT LECTURER HOOKS
+// ============================================
+
+/**
+ * Hook để lấy danh sách giáo viên của khoa
+ */
+export function useDepartmentTeachers(search?: any) {
+  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_TEACHERS, {
+    variables: { search },
+    fetchPolicy: "cache-and-network",
+  })
+
+  return {
+    teachers: (data as any)?.getDepartmentTeachers?.data || [],
+    total: (data as any)?.getDepartmentTeachers?.total || 0,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách sinh viên của khoa
+ */
+export function useDepartmentStudents(search?: any) {
+  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_STUDENTS, {
+    variables: { search },
+    fetchPolicy: "cache-and-network",
+  })
+
+  return {
+    students: (data as any)?.getDepartmentStudents?.data || [],
+    total: (data as any)?.getDepartmentStudents?.total || 0,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách đề tài của khoa
+ */
+export function useDepartmentTopics(search?: any) {
+  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_TOPICS, {
+    variables: { search },
+    fetchPolicy: "cache-and-network",
+  })
+
+  return {
+    topics: (data as any)?.getDepartmentTopics?.data || [],
+    total: (data as any)?.getDepartmentTopics?.total || 0,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy chi tiết đề tài của khoa
+ */
+export function useDepartmentTopicDetail(id: string) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_TOPIC_DETAIL,
+    {
+      variables: { id },
+      fetchPolicy: "cache-and-network",
+      skip: !id,
+    }
+  )
+
+  return {
+    topic: (data as any)?.getDepartmentTopicDetail,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách enrollments của khoa
+ */
+export function useDepartmentEnrollments(search?: any) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_ENROLLMENTS,
+    {
+      variables: { search },
+      fetchPolicy: "cache-and-network",
+    }
+  )
+
+  return {
+    enrollments: (data as any)?.getDepartmentEnrollments?.data || [],
+    total: (data as any)?.getDepartmentEnrollments?.total || 0,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy chi tiết enrollment của khoa
+ */
+export function useDepartmentEnrollmentDetail(id: string) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_ENROLLMENT_DETAIL,
+    {
+      variables: { id },
+      fetchPolicy: "cache-and-network",
+      skip: !id,
+    }
+  )
+
+  return {
+    enrollment: (data as any)?.getDepartmentEnrollmentDetail,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách hội đồng của khoa
+ */
+export function useDepartmentCouncils(search?: any) {
+  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_COUNCILS, {
+    variables: { search },
+    fetchPolicy: "cache-and-network",
+  })
+
+  return {
+    councils: (data as any)?.getDepartmentCouncils?.data || [],
+    total: (data as any)?.getDepartmentCouncils?.total || 0,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy chi tiết hội đồng của khoa
+ */
+export function useDepartmentCouncilDetail(id: string) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_COUNCIL_DETAIL,
+    {
+      variables: { id },
+      fetchPolicy: "cache-and-network",
+      skip: !id,
+    }
+  )
+
+  return {
+    council: (data as any)?.getDepartmentCouncilDetail,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách defences theo council
+ */
+export function useDepartmentDefences(councilId: string) {
+  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_DEFENCES, {
+    variables: { councilId },
+    fetchPolicy: "cache-and-network",
+    skip: !councilId,
+  })
+
+  const defences = (data as any)?.getDepartmentDefences || []
+
+  return {
+    defences,
+    total: defences.length,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách grade defences của khoa
+ */
+export function useDepartmentGradeDefences(search?: any) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_GRADE_DEFENCES,
+    {
+      variables: { search },
+      fetchPolicy: "cache-and-network",
+    }
+  )
+
+  const gradeDefences = (data as any)?.getDepartmentGradeDefences || []
+
+  return {
+    gradeDefences,
+    total: gradeDefences.length,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy lịch bảo vệ của khoa (cho calendar)
+ */
+export function useDepartmentDefenceSchedule(search?: any) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_DEFENCE_SCHEDULE,
+    {
+      variables: { search },
+      fetchPolicy: "cache-and-network",
+    }
+  )
+
+  return {
+    councils: (data as any)?.getDepartmentCouncils?.data || [],
+    total: (data as any)?.getDepartmentCouncils?.total || 0,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách semesters của khoa
+ */
+export function useDepartmentSemesters(search?: any) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_SEMESTERS,
+    {
+      variables: { search },
+      fetchPolicy: "cache-and-network",
+    }
+  )
+
+  const semesters = (data as any)?.getDepartmentSemesters || []
+
+  return {
+    semesters,
+    total: semesters.length,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách majors của khoa
+ */
+export function useDepartmentMajors(search?: any) {
+  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_MAJORS, {
+    variables: { search },
+    fetchPolicy: "cache-and-network",
+  })
+
+  const majors = (data as any)?.getDepartmentMajors || []
+
+  return {
+    majors,
+    total: majors.length,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để lấy danh sách faculties
+ */
+export function useDepartmentFaculties(search?: any) {
+  const { data, loading, error, refetch } = useQuery(
+    GET_DEPARTMENT_FACULTIES,
+    {
+      variables: { search },
+      fetchPolicy: "cache-and-network",
+    }
+  )
+
+  const faculties = (data as any)?.getDepartmentFaculties || []
+
+  return {
+    faculties,
+    total: faculties.length,
+    loading,
+    error,
+    refetch,
+  }
+}
+
+/**
+ * Hook để duyệt đề tài (Stage 1)
+ */
+export function useApproveTopicStage1() {
+  const [approveTopicStage1, { loading, error }] = useMutation(
+    APPROVE_TOPIC_STAGE1,
+    {
+      refetchQueries: [{ query: GET_DEPARTMENT_TOPICS }],
+    }
+  )
+
+  return { approveTopicStage1, loading, error }
+}
+
+/**
+ * Hook để từ chối đề tài (Stage 1)
+ */
+export function useRejectTopicStage1() {
+  const [rejectTopicStage1, { loading, error }] = useMutation(
+    REJECT_TOPIC_STAGE1,
+    {
+      refetchQueries: [{ query: GET_DEPARTMENT_TOPICS }],
+    }
+  )
+
+  return { rejectTopicStage1, loading, error }
+}
+
+/**
+ * Hook để gán đề tài vào hội đồng
+ */
+export function useAssignTopicToCouncil() {
+  const [assignTopicToCouncil, { loading, error }] = useMutation(
+    ASSIGN_TOPIC_TO_COUNCIL,
+    {
+      refetchQueries: [
+        { query: GET_DEPARTMENT_TOPICS },
+        { query: GET_DEPARTMENT_COUNCILS },
+      ],
+    }
+  )
+
+  return { assignTopicToCouncil, loading, error }
+}
+
+/**
+ * Hook để tạo hội đồng
+ */
+export function useCreateCouncil() {
+  const [createCouncil, { loading, error }] = useMutation(CREATE_COUNCIL, {
+    refetchQueries: [{ query: GET_DEPARTMENT_COUNCILS }],
+  })
+
+  return { createCouncil, loading, error }
+}
+
+/**
+ * Hook để cập nhật hội đồng của khoa
+ */
+export function useUpdateDepartmentCouncil() {
+  const [updateDepartmentCouncil, { loading, error }] = useMutation(
+    UPDATE_DEPARTMENT_COUNCIL,
+    {
+      refetchQueries: [{ query: GET_DEPARTMENT_COUNCILS }],
+    }
+  )
+
+  return { updateDepartmentCouncil, loading, error }
+}
+
+/**
+ * Hook để thêm thành viên vào hội đồng
+ */
+export function useAddDefenceToCouncil() {
+  const [addDefenceToCouncil, { loading, error }] = useMutation(
+    ADD_DEFENCE_TO_COUNCIL,
+    {
+      refetchQueries: [
+        { query: GET_DEPARTMENT_COUNCILS },
+        { query: GET_DEPARTMENT_COUNCIL_DETAIL },
+      ],
+    }
+  )
+
+  return { addDefenceToCouncil, loading, error }
+}
+
+/**
+ * Hook để xóa thành viên khỏi hội đồng
+ */
+export function useRemoveDefenceFromCouncil() {
+  const [removeDefenceFromCouncil, { loading, error }] = useMutation(
+    REMOVE_DEFENCE_FROM_COUNCIL,
+    {
+      refetchQueries: [
+        { query: GET_DEPARTMENT_COUNCILS },
+        { query: GET_DEPARTMENT_COUNCIL_DETAIL },
+      ],
+    }
+  )
+
+  return { removeDefenceFromCouncil, loading, error }
 }

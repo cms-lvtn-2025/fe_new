@@ -33,9 +33,11 @@ const ROLE_NAVIGATION: Record<RoleType, NavigationItem[]> = {
   ],
   DEPARTMENT_LECTURER: [
     { label: 'Dashboard bộ môn', href: '/department/dashboard', icon: LayoutDashboard },
-    { label: 'Quản lý giảng viên', href: '/department/lecturers', icon: UserCog },
-    { label: 'Phân công công việc', href: '/department/assignments', icon: ClipboardList },
-    { label: 'Báo cáo bộ môn', href: '/department/reports', icon: FileText },
+    { label: 'Quản lý giảng viên', href: '/department/teachers', icon: UserCog },
+    { label: 'Quản lý sinh viên', href: '/department/students', icon: Users },
+    { label: 'Quản lý đề tài', href: '/department/topics', icon: FileText },
+    { label: 'Quản lý hội đồng', href: '/department/councils', icon: Scale },
+    { label: 'Lịch bảo vệ', href: '/department/defences', icon: Calendar },
   ],
   ACADEMIC_AFFAIRS_STAFF: [
     { label: 'Quản lý học kỳ', href: '/admin/semesters', icon: CalendarDays },
