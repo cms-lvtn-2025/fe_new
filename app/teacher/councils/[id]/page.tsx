@@ -1,0 +1,373 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import {
+  ArrowLeft,
+  Users,
+  Calendar,
+  Download,
+  Upload,
+  User,
+  Mail,
+  Award,
+  Clock,
+  Edit,
+  CheckCircle
+} from 'lucide-react'
+
+const POSITION_LABELS: Record<string, string> = {
+  PRESIDENT: 'Chủ tịch',
+  SECRETARY: 'Thư ký',
+  MEMBER: 'Ủy viên',
+  REVIEWER: 'Phản biện',
+}
+
+const POSITION_COLORS: Record<string, string> = {
+  PRESIDENT: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200',
+  SECRETARY: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200',
+  MEMBER: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200',
+  REVIEWER: 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200',
+}
+
+export default function TeacherCouncilDetailPage() {
+  const router = useRouter()
+  const params = useParams()
+  const [defenceData, setDefenceData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const data = sessionStorage.getItem('defenceDetailData')
+    if (data) {
+      setDefenceData(JSON.parse(data))
+    }
+    setLoading(false)
+  }, [])
+
+  const handleBack = () => {
+    const backUrl = defenceData?.backUrl || '/teacher/councils'
+    router.push(backUrl)
+  }
+
+  const handleImportExcel = () => {
+    alert('Chức năng Import Excel điểm sẽ được triển khai sau khi backend hoàn thiện')
+  }
+
+  const handleExportExcel = () => {
+    const council = defenceData?.council
+    alert(`Export điểm hội đồng "${council?.title}" sẽ được triển khai sau khi backend hoàn thiện`)
+  }
+
+  const handleGradeStudent = (gradeDefence: any) => {
+    alert(`Chấm điểm cho sinh viên sẽ được triển khai sau. Grade Defence ID: ${gradeDefence.id}`)
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-600 dark:text-gray-400">Đang tải...</div>
+      </div>
+    )
+  }
+
+  if (!defenceData) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 dark:text-red-400">Không tìm thấy thông tin hội đồng</p>
+        <button
+          onClick={() => router.push('/teacher/councils')}
+          className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          Quay lại danh sách
+        </button>
+      </div>
+    )
+  }
+
+  const council = defenceData.council
+  const gradeDefences = defenceData.gradeDefences || []
+  const gradedCount = gradeDefences.filter((g: any) => g.totalScore !== null && g.totalScore !== undefined).length
+
+  return (
+    <div className="max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="mb-6">
+        <button
+          onClick={handleBack}
+          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
+        >
+          <ArrowLeft className="w-5 h-5" />
+          Quay lại
+        </button>
+
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+                {council?.title || defenceData.title || 'Chi tiết hội đồng'}
+              </h1>
+              <span className={`px-3 py-1 text-sm font-medium rounded-full ${POSITION_COLORS[defenceData.position] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                {POSITION_LABELS[defenceData.position] || defenceData.position || 'N/A'}
+              </span>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+              <span className="flex items-center gap-1">
+                <Users className="w-4 h-4" />
+                Mã: {council?.id || 'N/A'}
+              </span>
+              <span className="flex items-center gap-1">
+                <Award className="w-4 h-4" />
+                Đã chấm: {gradedCount}/{gradeDefences.length}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleImportExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+              title="Import điểm từ Excel"
+            >
+              <Upload className="w-5 h-5" />
+              Import Excel
+            </button>
+            <button
+              onClick={handleExportExcel}
+              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+              title="Export điểm ra Excel"
+            >
+              <Download className="w-5 h-5" />
+              Export Excel
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Grade Defences */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Grade Defences List */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+                Danh sách sinh viên cần chấm ({gradeDefences.length})
+              </h2>
+            </div>
+            {gradeDefences.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500 dark:text-gray-400">Chưa có sinh viên nào</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {gradeDefences.map((gradeDefence: any) => {
+                  const hasScore = gradeDefence.totalScore !== null && gradeDefence.totalScore !== undefined
+                  const criteria = gradeDefence.criteria || []
+
+                  return (
+                    <div
+                      key={gradeDefence.id}
+                      className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-start gap-3 flex-1">
+                          <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center flex-shrink-0">
+                            {hasScore ? (
+                              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400" />
+                            ) : (
+                              <User className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                            )}
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-medium text-gray-900 dark:text-gray-100">
+                              Sinh viên - Enrollment: {gradeDefence.enrollmentCode || 'N/A'}
+                            </h3>
+                            {gradeDefence.note && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                {gradeDefence.note}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                        <button
+                          onClick={() => handleGradeStudent(gradeDefence)}
+                          className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                        >
+                          <Edit className="w-4 h-4" />
+                          {hasScore ? 'Sửa điểm' : 'Chấm điểm'}
+                        </button>
+                      </div>
+
+                      {/* Total Score */}
+                      <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                            Tổng điểm
+                          </span>
+                          {hasScore ? (
+                            <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                              {gradeDefence.totalScore}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400 dark:text-gray-500">Chưa chấm</span>
+                          )}
+                        </div>
+
+                        {/* Criteria */}
+                        {criteria.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+                              Chi tiết tiêu chí
+                            </h4>
+                            {criteria.map((criterion: any, index: number) => (
+                              <div
+                                key={criterion.id || index}
+                                className="flex items-center justify-between text-sm bg-gray-50 dark:bg-gray-800 rounded px-3 py-2"
+                              >
+                                <span className="text-gray-700 dark:text-gray-300">
+                                  {criterion.name || `Tiêu chí ${index + 1}`}
+                                </span>
+                                <span className="font-medium text-gray-900 dark:text-gray-100">
+                                  {criterion.score !== null && criterion.score !== undefined
+                                    ? `${criterion.score}/${criterion.maxScore || 10}`
+                                    : '-'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Right Column - Council Info */}
+        <div className="space-y-6">
+          {/* Council Info */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Thông tin hội đồng
+            </h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-500 dark:text-gray-400">Mã hội đồng</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1 font-mono">
+                  {council?.id || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-500 dark:text-gray-400">Tên hội đồng</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {council?.title || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-500 dark:text-gray-400">Mã khoa</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {council?.majorCode || 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-sm text-gray-500 dark:text-gray-400">Mã học kỳ</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {council?.semesterCode || 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Schedule */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Lịch bảo vệ
+            </h2>
+            {council?.timeStart ? (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <Calendar className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Ngày bảo vệ</p>
+                    <p className="text-gray-900 dark:text-gray-100 font-medium">
+                      {new Date(council.timeStart).toLocaleDateString('vi-VN', {
+                        weekday: 'long',
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                      })}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Clock className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">Thời gian</p>
+                    <p className="text-gray-900 dark:text-gray-100 font-medium">
+                      {new Date(council.timeStart).toLocaleTimeString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit'
+                      })}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400 text-sm">Chưa có lịch bảo vệ</p>
+            )}
+          </div>
+
+          {/* My Role */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Vai trò của bạn
+            </h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-sm text-gray-500 dark:text-gray-400">Chức vụ</label>
+                <div className="mt-2">
+                  <span className={`px-3 py-1 text-sm font-medium rounded-full ${POSITION_COLORS[defenceData.position] || 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200'}`}>
+                    {POSITION_LABELS[defenceData.position] || defenceData.position || 'N/A'}
+                  </span>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm text-gray-500 dark:text-gray-400">Mã giảng viên</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1 font-mono">
+                  {defenceData.teacherCode || 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Metadata */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
+              Thông tin khác
+            </h2>
+            <div className="space-y-3 text-sm">
+              <div>
+                <label className="text-gray-500 dark:text-gray-400">Ngày tạo</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {defenceData.createdAt
+                    ? new Date(defenceData.createdAt).toLocaleDateString('vi-VN')
+                    : 'N/A'}
+                </p>
+              </div>
+              <div>
+                <label className="text-gray-500 dark:text-gray-400">Cập nhật lần cuối</label>
+                <p className="text-gray-900 dark:text-gray-100 mt-1">
+                  {defenceData.updatedAt
+                    ? new Date(defenceData.updatedAt).toLocaleDateString('vi-VN')
+                    : 'N/A'}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

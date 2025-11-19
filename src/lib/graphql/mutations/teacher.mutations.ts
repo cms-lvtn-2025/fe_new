@@ -108,3 +108,26 @@ export const UPDATE_GRADE_REVIEW = gql`
     }
   }
 `
+
+/**
+ * Mutation để tạo/gửi đề tài mới
+ */
+export const CREATE_TOPIC = gql`
+  mutation CreateTopic($input: CreateTopicInput!) {
+    createTopic(input: $input) {
+      id
+      title
+      titleEnglish
+      description
+      status
+      majorCode
+      semesterCode
+      trainingProgram
+      startDate
+      endDate
+      maxStudents
+      createdAt
+      updatedAt
+    }
+  }
+`

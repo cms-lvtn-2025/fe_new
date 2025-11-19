@@ -38,6 +38,7 @@ import {
   UPDATE_GRADE_DEFENCE,
   ADD_GRADE_DEFENCE_CRITERION,
   UPDATE_GRADE_REVIEW,
+  CREATE_TOPIC,
   // Academic Affairs mutations
   CREATE_TEACHER,
   UPDATE_TEACHER,
@@ -380,6 +381,21 @@ export function useUpdateGradeReview() {
 
   return {
     updateGradeReview,
+    loading,
+    error,
+  }
+}
+
+/**
+ * Hook để tạo/gửi đề tài mới
+ */
+export function useCreateTopic() {
+  const [createTopic, { loading, error }] = useMutation(CREATE_TOPIC, {
+    refetchQueries: [{ query: GET_MY_SUPERVISED_TOPIC_COUNCILS }],
+  })
+
+  return {
+    createTopic,
     loading,
     error,
   }

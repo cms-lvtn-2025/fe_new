@@ -22,6 +22,7 @@ export {
   UPDATE_GRADE_DEFENCE,
   ADD_GRADE_DEFENCE_CRITERION,
   UPDATE_GRADE_REVIEW,
+  CREATE_TOPIC,
 } from './teacher.mutations'
 
 // Admin Mutations

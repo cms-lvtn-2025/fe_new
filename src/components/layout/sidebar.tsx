@@ -22,9 +22,6 @@ interface MenuItem {
 const studentMenuItems: MenuItem[] = [
   { id: 'dashboard', label: 'Tổng quan', href: '/student/dashboard', icon: LayoutDashboard },
   { id: 'thesis', label: 'Luận văn của tôi', href: '/student/thesis', icon: FileText },
-  { id: 'advisor', label: 'Giảng viên hướng dẫn', href: '/student/advisor', icon: UserCircle },
-  { id: 'schedule', label: 'Lịch bảo vệ', href: '/student/schedule', icon: Calendar },
-  { id: 'documents', label: 'Tài liệu', href: '/student/documents', icon: FileStack },
   { id: 'profile', label: 'Thông tin cá nhân', href: '/student/profile', icon: User },
 ]
 

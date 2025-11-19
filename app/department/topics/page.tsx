@@ -193,33 +193,13 @@ export default function DepartmentTopicsPage() {
   return (
     <div className="max-w-7xl mx-auto">
       {/* Header */}
-      <div className="mb-6 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Quản lý Đề tài
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-2">
-            Duyệt và quản lý đề tài của khoa
-          </p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => alert('Chức năng Import Excel sẽ được triển khai sau khi backend hoàn thiện')}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-            title="Import điểm từ Excel"
-          >
-            <Upload className="w-5 h-5" />
-            Import Excel
-          </button>
-          <button
-            onClick={() => alert('Chức năng Export Excel sẽ được triển khai sau khi backend hoàn thiện')}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-            title="Export điểm ra Excel"
-          >
-            <Download className="w-5 h-5" />
-            Export Excel
-          </button>
-        </div>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+          Quản lý Đề tài
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400 mt-2">
+          Duyệt và quản lý đề tài của khoa
+        </p>
       </div>
 
       {/* Search and Filters */}
@@ -242,6 +222,26 @@ export default function DepartmentTopicsPage() {
             ))}
           </select>
         </div>
+
+        {/* Import Button */}
+        <button
+          onClick={() => alert('Chức năng Import Excel sẽ được triển khai sau khi backend hoàn thiện')}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          title="Import điểm từ Excel"
+        >
+          <Upload className="w-5 h-5" />
+          Import
+        </button>
+
+        {/* Export Button */}
+        <button
+          onClick={() => alert('Chức năng Export Excel sẽ được triển khai sau khi backend hoàn thiện')}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          title="Export điểm ra Excel"
+        >
+          <Download className="w-5 h-5" />
+          Export
+        </button>
       </SearchBar>
 
       {/* Topics Table */}
@@ -322,6 +322,18 @@ export default function DepartmentTopicsPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
+                          {/* Download File */}
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              alert(`Download file cho đề tài "${topic.title}"\nAPI sẽ được triển khai sau`)
+                            }}
+                            className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                            title="Download file đề tài"
+                          >
+                            <Download className="w-4 h-4" />
+                          </button>
+
                           {/* Approve - Only for TOPIC_PENDING */}
                           {topic.status === 'TOPIC_PENDING' && (
                             <button
