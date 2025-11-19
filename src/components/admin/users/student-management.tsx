@@ -40,7 +40,7 @@ export function StudentManagement() {
   })
 
   const semesters = useMemo(() => {
-    return semestersData?.getAllSemesters?.data || []
+    return (semestersData as any)?.getAllSemesters?.data || []
   }, [semestersData])
 
   // Build filters for backend

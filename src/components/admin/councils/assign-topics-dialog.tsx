@@ -118,9 +118,9 @@ export function AssignTopicsDialog({
 
   // Extract unassigned topic councils (prefer stage 2, fallback to stage 1)
   const unassignedTopicCouncils = useMemo(() => {
-    if (!data?.getAllTopics?.data) return []
+    if (!(data as any)?.getAllTopics?.data) return []
 
-    const topics: Topic[] = data.getAllTopics.data
+    const topics: Topic[] = (data as any).getAllTopics.data
     const unassigned: TopicCouncil[] = []
 
     topics.forEach((topic) => {

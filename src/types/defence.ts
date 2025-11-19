@@ -67,6 +67,7 @@ export interface Council {
   updatedAt?: string
   defences: Defence[]
   topicCouncils: TopicCouncil[]
+  backUrl?: string
 }
 
 export type DefencePosition = 'PRESIDENT' | 'SECRETARY' | 'REVIEWER' | 'MEMBER'

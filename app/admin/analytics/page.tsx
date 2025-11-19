@@ -33,6 +33,7 @@ interface Topic {
 interface Council {
   id: string
   topicCouncils?: any[]
+  timeStart?: string
 }
 
 export default function AnalyticsPage() {
@@ -49,7 +50,7 @@ export default function AnalyticsPage() {
     },
   })
 
-  const semesters = semestersData?.getAllSemesters?.data || []
+  const semesters = (semestersData as any)?.getAllSemesters?.data || []
 
   // Set default selected semester to current semester
   useEffect(() => {
@@ -116,10 +117,10 @@ export default function AnalyticsPage() {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const topics: Topic[] = topicsData?.getAllTopics?.data || []
-    const councils: Council[] = councilsData?.getAllCouncils?.data || []
-    const students = studentsData?.getListStudents?.data || []
-    const teachers = teachersData?.getListTeachers?.data || []
+    const topics: Topic[] = (topicsData as any)?.getAllTopics?.data || []
+    const councils: Council[] = (councilsData as any)?.getAllCouncils?.data || []
+    const students = (studentsData as any)?.getListStudents?.data || []
+    const teachers = (teachersData as any)?.getListTeachers?.data || []
 
     // Topic statistics
     const totalTopics = topics.length

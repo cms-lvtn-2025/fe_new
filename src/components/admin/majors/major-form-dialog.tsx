@@ -46,7 +46,7 @@ export function MajorFormDialog({ isOpen, onClose, major, onSuccess }: MajorForm
     skip: !isOpen,
   })
 
-  const faculties: Faculty[] = facultiesData?.getAllFaculties?.data || []
+  const faculties: Faculty[] = (facultiesData as any)?.getAllFaculties?.data || []
 
   const [createMajor, { loading: createLoading }] = useMutation(CREATE_MAJOR, {
     onCompleted: () => {

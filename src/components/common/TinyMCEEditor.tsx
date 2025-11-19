@@ -22,7 +22,7 @@ export function TinyMCEEditor({
 
   return (
     <Editor
-      apiKey="no-api-key" // Sử dụng TinyMCE community version (no API key needed for basic features)
+      apiKey={process.env.NEXT_PUBLIC_TINYMCE_API_KEY || "no-api-key"}
       onInit={(evt, editor) => (editorRef.current = editor)}
       value={value}
       onEditorChange={onEditorChange}

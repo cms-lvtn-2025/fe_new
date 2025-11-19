@@ -1,10 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { Loading, Alert } from '@/components/common'
 
-export default function LoginCallbackPage() {
+function CallbackContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const [error, setError] = useState('')
@@ -127,5 +127,13 @@ export default function LoginCallbackPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+export default function LoginCallbackPage() {
+  return (
+    <Suspense fallback={<Loading size="lg" text="Đang tải..." fullScreen />}>
+      <CallbackContent />
+    </Suspense>
   )
 }

@@ -36,8 +36,8 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
   const [midtermFileInput, setMidtermFileInput] = useState<File | null>(null)
   const [finalFileInput, setFinalFileInput] = useState<File | null>(null)
 
-  const { uploadMidtermFile, loading: uploadingMidterm } = useUploadMidtermFile()
-  const { uploadFinalFile, loading: uploadingFinal } = useUploadFinalFile()
+  const { uploadFile: uploadMidtermFile, loading: uploadingMidterm } = useUploadMidtermFile()
+  const { uploadFile: uploadFinalFile, loading: uploadingFinal } = useUploadFinalFile()
 
   useEffect(() => {
     const data = sessionStorage.getItem('enrollmentDetailData')

@@ -7,7 +7,7 @@ import { useCreateTopic } from '@/lib/graphql/hooks'
 import { useMyTeacherProfile } from '@/lib/graphql/hooks'
 import { useSemester } from '@/lib/contexts/semester-context'
 import { useGoogleTranslate } from '@/hooks/useGoogleTranslate'
-import { ArrowLeft, FileText, Send, Loader, Languages } from 'lucide-react'
+import { ArrowLeft, FileText, Send, Loader, Languages, UserPlus, X } from 'lucide-react'
 
 // Dynamic import TinyMCE to avoid SSR issues
 const TinyMCEEditor = dynamic(
@@ -18,7 +18,7 @@ const TinyMCEEditor = dynamic(
 export default function SubmitTopicPage() {
   const router = useRouter()
   const { profile } = useMyTeacherProfile()
-  const { selectedSemester } = useSemester()
+  const { currentSemester: selectedSemester } = useSemester()
   const { createTopic, loading, error } = useCreateTopic()
   const { translate, translating } = useGoogleTranslate()
 
@@ -32,7 +32,12 @@ export default function SubmitTopicPage() {
     startDate: '',
     endDate: '',
     maxStudents: 1,
+    stage: 'STAGE_DACN', // STAGE_DACN (Topic 1) or STAGE_LVTN (Topic 2)
+    studentCodes: [] as string[], // Array of student codes
   })
+
+  const [studentSearch, setStudentSearch] = useState('')
+  const [selectedStudents, setSelectedStudents] = useState<any[]>([])
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -137,6 +142,7 @@ export default function SubmitTopicPage() {
         majorCode: formData.majorCode.trim(),
         semesterCode: formData.semesterCode.trim(),
         maxStudents: formData.maxStudents,
+        stage: formData.stage,
       }
 
       // Optional fields
@@ -152,12 +158,15 @@ export default function SubmitTopicPage() {
       if (formData.endDate) {
         input.endDate = formData.endDate
       }
+      if (formData.studentCodes.length > 0) {
+        input.studentCodes = formData.studentCodes
+      }
 
       const result = await createTopic({
         variables: { input }
       })
 
-      if (result.data?.createTopic) {
+      if ((result.data as any)?.createTopic) {
         alert('Đề tài đã được gửi thành công! Vui lòng chờ phê duyệt từ bộ môn.')
         router.push('/teacher/topics')
       }
@@ -169,6 +178,39 @@ export default function SubmitTopicPage() {
 
   const handleBack = () => {
     router.push('/teacher/topics')
+  }
+
+  const handleAddStudent = () => {
+    const studentCode = studentSearch.trim()
+    if (!studentCode) {
+      alert('Vui lòng nhập MSSV sinh viên')
+      return
+    }
+
+    if (formData.studentCodes.includes(studentCode)) {
+      alert('Sinh viên này đã được thêm')
+      return
+    }
+
+    if (formData.studentCodes.length >= formData.maxStudents) {
+      alert(`Đã đạt số lượng sinh viên tối đa (${formData.maxStudents})`)
+      return
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      studentCodes: [...prev.studentCodes, studentCode]
+    }))
+    setSelectedStudents(prev => [...prev, { id: studentCode, username: studentCode }])
+    setStudentSearch('')
+  }
+
+  const handleRemoveStudent = (studentCode: string) => {
+    setFormData(prev => ({
+      ...prev,
+      studentCodes: prev.studentCodes.filter(code => code !== studentCode)
+    }))
+    setSelectedStudents(prev => prev.filter(s => s.id !== studentCode))
   }
 
   return (
@@ -324,7 +366,7 @@ export default function SubmitTopicPage() {
             )}
             {selectedSemester && (
               <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-                Hiện tại: {selectedSemester.title}
+                Hiện tại: {selectedSemester.name}
               </p>
             )}
           </div>
@@ -353,6 +395,93 @@ export default function SubmitTopicPage() {
               Số sinh viên tối đa có thể thực hiện đề tài này
             </p>
           </div>
+        </div>
+
+        {/* Topic Stage Selection */}
+        <div>
+          <label htmlFor="stage" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Loại đề tài <span className="text-red-600">*</span>
+          </label>
+          <select
+            id="stage"
+            name="stage"
+            value={formData.stage}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          >
+            <option value="STAGE_DACN">Đề án chuyên ngành (ĐACN - Topic 1)</option>
+            <option value="STAGE_LVTN">Luận văn tốt nghiệp (LVTN - Topic 2)</option>
+          </select>
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            ĐACN (Topic 1) dành cho đề tài giai đoạn 1, LVTN (Topic 2) dành cho đề tài giai đoạn 2
+          </p>
+        </div>
+
+        {/* Student Selection */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Sinh viên thực hiện ({formData.studentCodes.length}/{formData.maxStudents})
+          </label>
+
+          {/* Add Student Input */}
+          <div className="flex gap-2 mb-3">
+            <input
+              type="text"
+              value={studentSearch}
+              onChange={(e) => setStudentSearch(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddStudent())}
+              placeholder="Nhập MSSV sinh viên (vd: 2052001)"
+              className="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <button
+              type="button"
+              onClick={handleAddStudent}
+              disabled={formData.studentCodes.length >= formData.maxStudents}
+              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <UserPlus className="w-5 h-5" />
+              Thêm
+            </button>
+          </div>
+
+          {/* Selected Students List */}
+          {formData.studentCodes.length > 0 && (
+            <div className="border border-gray-300 dark:border-gray-600 rounded-lg p-4 bg-gray-50 dark:bg-gray-700/50">
+              <div className="space-y-2">
+                {formData.studentCodes.map((studentCode, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-3 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 dark:text-blue-400 font-medium text-sm">
+                          {index + 1}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">
+                          MSSV: {studentCode}
+                        </p>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveStudent(studentCode)}
+                      className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      title="Xóa sinh viên"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Tùy chọn: Thêm sinh viên vào đề tài ngay khi tạo (có thể bỏ trống và để sinh viên tự đăng ký sau)
+          </p>
         </div>
 
         {/* Start Date & End Date */}

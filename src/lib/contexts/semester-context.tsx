@@ -94,6 +94,10 @@ export function SemesterProvider({ children }: { children: React.ReactNode }) {
 
         if (semester) {
           setCurrentSemesterState(semester)
+          // Set vào localStorage nếu chưa có (lần đầu load)
+          if (!savedSemesterId) {
+            localStorage.setItem('currentSemesterId', semester.id)
+          }
         }
       }
 

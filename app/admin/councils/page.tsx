@@ -37,7 +37,7 @@ export default function CouncilsManagementPage() {
   })
 
   const semesters = useMemo(() => {
-    return semestersData?.getAllSemesters?.data || []
+    return (semestersData as any)?.getAllSemesters?.data || []
   }, [semestersData])
 
   // Set default semester to latest when data is loaded

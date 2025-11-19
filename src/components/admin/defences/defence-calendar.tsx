@@ -90,7 +90,7 @@ export function DefenceCalendar({ councils, onEventClick }: DefenceCalendarProps
 
   // Custom event component with tooltip
   const EventComponent = ({ event }: { event: DefenceEvent }) => {
-    const timeRange = `${format(event.start, 'HH:mm', { locale: vi })} - ${format(event.end, 'HH:mm', { locale: vi })}`
+    const timeRange = event.start && event.end ? `${format(event.start, 'HH:mm', { locale: vi })} - ${format(event.end, 'HH:mm', { locale: vi })}` : 'N/A'
     const tooltipText = [
       event.councilTitle,
       `${event.resource?.topicCount || 0} đề tài`,
