@@ -1,2 +1,6 @@
 export { StudentManagement } from './student-management'
 export { TeacherManagement } from './teacher-management'
+export { StudentFormDialog } from './student-form-dialog'
+export { DeleteStudentDialog } from './delete-student-dialog'
+export { TeacherFormDialog } from './teacher-form-dialog'
+export { DeleteTeacherDialog } from './delete-teacher-dialog'

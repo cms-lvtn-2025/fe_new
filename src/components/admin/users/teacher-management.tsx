@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { useQuery } from '@apollo/client/react'
 import { GET_LIST_TEACHERS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin.queries'
 import { Plus, Pencil, Trash2, Search, RefreshCw, Upload, Download, Filter, Eye } from 'lucide-react'
+import { TeacherFormDialog } from './teacher-form-dialog'
+import { DeleteTeacherDialog } from './delete-teacher-dialog'
 
 interface Teacher {
   id: string
@@ -25,6 +27,12 @@ export function TeacherManagement() {
   const [selectedSemester, setSelectedSemester] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
+
+  // Dialog states
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [selectedTeacher, setSelectedTeacher] = useState<Teacher | null>(null)
 
   // Fetch semesters
   const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
@@ -274,7 +282,7 @@ export function TeacherManagement() {
 
           {/* Create Button */}
           <button
-            onClick={() => alert('TODO: Create teacher dialog')}
+            onClick={() => setIsCreateDialogOpen(true)}
             className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
           >
             <Plus className="w-5 h-5" />
@@ -362,14 +370,20 @@ export function TeacherManagement() {
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => alert('TODO: Edit teacher')}
+                          onClick={() => {
+                            setSelectedTeacher(teacher)
+                            setIsEditDialogOpen(true)
+                          }}
                           className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Chỉnh sửa"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => alert('TODO: Delete teacher')}
+                          onClick={() => {
+                            setSelectedTeacher(teacher)
+                            setIsDeleteDialogOpen(true)
+                          }}
                           className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Xóa"
                         >
@@ -458,6 +472,46 @@ export function TeacherManagement() {
           </div>
         </div>
       </div>
+
+      {/* Dialogs */}
+      <TeacherFormDialog
+        isOpen={isCreateDialogOpen}
+        onClose={() => setIsCreateDialogOpen(false)}
+        onSuccess={() => {
+          setIsCreateDialogOpen(false)
+          refetch()
+        }}
+      />
+
+      <TeacherFormDialog
+        isOpen={isEditDialogOpen}
+        onClose={() => {
+          setIsEditDialogOpen(false)
+          setSelectedTeacher(null)
+        }}
+        teacher={selectedTeacher}
+        onSuccess={() => {
+          setIsEditDialogOpen(false)
+          setSelectedTeacher(null)
+          refetch()
+        }}
+      />
+
+      {selectedTeacher && (
+        <DeleteTeacherDialog
+          isOpen={isDeleteDialogOpen}
+          onClose={() => {
+            setIsDeleteDialogOpen(false)
+            setSelectedTeacher(null)
+          }}
+          teacher={selectedTeacher}
+          onSuccess={() => {
+            setIsDeleteDialogOpen(false)
+            setSelectedTeacher(null)
+            refetch()
+          }}
+        />
+      )}
     </div>
   )
 }
