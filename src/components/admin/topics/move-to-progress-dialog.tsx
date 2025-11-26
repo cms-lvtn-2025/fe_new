@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { UPDATE_TOPIC } from '@/lib/graphql/mutations/admin.mutations'
+import { UPDATE_TOPIC } from '@/lib/graphql/mutations/admin'
 import { X, RotateCcw } from 'lucide-react'
 
 interface Topic {

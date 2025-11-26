@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useQuery } from '@apollo/client/react'
-import { GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin.queries'
+import { GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { Plus, Pencil, Trash2, Search } from 'lucide-react'
 import { CreateSemesterDialog } from '@/components/admin/semesters/create-semester-dialog'
 import { UpdateSemesterDialog } from '@/components/admin/semesters/update-semester-dialog'
@@ -30,7 +30,7 @@ export default function SemestersPage() {
           page: 1,
           pageSize: 100,
           sortBy: 'created_at',
-          descending: true
+          descending: true,
         },
         filters: [],
       },
@@ -38,7 +38,7 @@ export default function SemestersPage() {
     fetchPolicy: 'network-only',
   })
 
-  const semesters: Semester[] = (data as any)?.getAllSemesters?.data || []
+  const semesters: Semester[] = (data as any)?.affair?.semesters?.data || []
 
   // Filter semesters by search term
   const filteredSemesters = semesters.filter(semester =>

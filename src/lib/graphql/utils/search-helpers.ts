@@ -2,31 +2,16 @@
  * GraphQL Search Utilities
  *
  * Helper functions để tạo search input cho GraphQL queries
+ * Updated to match actual backend schema
  */
 
-interface FilterCondition {
-  field: string
-  operator: 'EQUAL' | 'IN' | 'LIKE' | 'GT' | 'LT' | 'GTE' | 'LTE'
-  values: string | string[]
-}
-
-interface SearchInput {
-  pagination?: {
-    page: number
-    pageSize: number
-    sortBy?: string
-    descending?: boolean
-  }
-  filters?: Array<{
-    condition: FilterCondition
-  }>
-}
+import type { SearchRequestInput, FilterCriteriaInput, FilterConditionInput } from '@/types/graphql'
 
 /**
  * Tạo search input với filter theo semester
  *
  * @param semesterCode - Mã học kỳ
- * @param field - Tên field để filter (mặc định là 'semester_code')
+ * @param field - Tên field để filter (mặc định là 'semesterCode')
  * @param pageSize - Số lượng items per page (mặc định là 100)
  * @returns SearchInput object
  *
@@ -40,19 +25,19 @@ interface SearchInput {
  */
 export function createSemesterSearch(
   semesterCode: string | undefined,
-  field: string = 'semester_code',
+  field: string = 'semesterCode',
   pageSize: number = 100
-): { search: SearchInput } {
+): { search: SearchRequestInput } {
   return {
     search: {
-      pagination: { page: 1, pageSize },
+      pagination: { page: 1, pageSize, sortBy: 'created_at', descending: true },
       filters: semesterCode
         ? [
             {
               condition: {
                 field,
                 operator: 'EQUAL',
-                values: semesterCode,
+                values: [semesterCode],
               },
             },
           ]
@@ -81,10 +66,10 @@ export function createInSearch(
   field: string,
   values: string[],
   pageSize: number = 100
-): { search: SearchInput } {
+): { search: SearchRequestInput } {
   return {
     search: {
-      pagination: { page: 1, pageSize },
+      pagination: { page: 1, pageSize, sortBy: 'created_at', descending: true },
       filters:
         values.length > 0
           ? [
@@ -123,7 +108,7 @@ export function createBasicSearch(
   pageSize: number = 20,
   sortBy?: string,
   descending: boolean = false
-): { search: SearchInput } {
+): { search: SearchRequestInput } {
   return {
     search: {
       pagination: {
@@ -140,7 +125,7 @@ export function createBasicSearch(
 /**
  * Tạo search input với multiple filters
  *
- * @param filters - Mảng filter conditions
+ * @param filters - Mảng filter criteria
  * @param page - Số trang (mặc định là 1)
  * @param pageSize - Số lượng items per page (mặc định là 20)
  * @returns SearchInput object
@@ -148,8 +133,8 @@ export function createBasicSearch(
  * @example
  * ```typescript
  * const search = createMultiFilterSearch([
- *   { field: 'semester_code', operator: 'EQUAL', values: 'HK1_2024' },
- *   { field: 'status', operator: 'IN', values: ['APPROVED', 'PENDING'] }
+ *   { condition: { field: 'semesterCode', operator: 'EQUAL', values: ['HK1_2024'] } },
+ *   { condition: { field: 'status', operator: 'IN', values: ['APPROVED', 'PENDING'] } }
  * ])
  * const { data } = useQuery(GET_ALL_TOPICS, {
  *   variables: { search }
@@ -157,15 +142,50 @@ export function createBasicSearch(
  * ```
  */
 export function createMultiFilterSearch(
-  filters: FilterCondition[],
+  filters: FilterCriteriaInput[],
   page: number = 1,
   pageSize: number = 20
-): { search: SearchInput } {
+): { search: SearchRequestInput } {
   return {
     search: {
-      pagination: { page, pageSize },
-      filters: filters.map((condition) => ({ condition })),
+      pagination: { page, pageSize, sortBy: 'created_at', descending: true },
+      filters,
     },
+  }
+}
+
+/**
+ * Tạo search input để lấy detail (filter theo ID)
+ * Dùng cho detail pages - query list endpoint với filter id = entityId
+ *
+ * @param id - ID của entity cần lấy detail
+ * @param field - Tên field để filter (mặc định là 'id')
+ * @returns SearchInput object
+ *
+ * @example
+ * ```typescript
+ * const search = createDetailSearch('STU_001')
+ * const { data } = useQuery(GET_STUDENT_DETAIL, {
+ *   variables: { search }
+ * })
+ * // Lấy data: data.affair.students.data[0]
+ * ```
+ */
+export function createDetailSearch(
+  id: string,
+  field: string = 'id'
+): SearchRequestInput {
+  return {
+    pagination: { page: 1, pageSize: 1 },
+    filters: [
+      {
+        condition: {
+          field,
+          operator: 'EQUAL',
+          values: [id],
+        },
+      },
+    ],
   }
 }
 
@@ -182,9 +202,9 @@ export function createMultiFilterSearch(
  * const merged = mergeSearchInputs(semesterSearch.search, statusSearch.search)
  * ```
  */
-export function mergeSearchInputs(...searches: SearchInput[]): { search: SearchInput } {
-  const merged: SearchInput = {
-    pagination: searches[0]?.pagination || { page: 1, pageSize: 20 },
+export function mergeSearchInputs(...searches: SearchRequestInput[]): { search: SearchRequestInput } {
+  const merged: SearchRequestInput = {
+    pagination: searches[0]?.pagination || { page: 1, pageSize: 20, sortBy: 'created_at', descending: true },
     filters: [],
   }
 

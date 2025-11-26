@@ -1,14 +1,17 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import { useMutation } from '@apollo/client/react'
+import { useQuery, useMutation } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_COUNCIL_DETAIL } from '@/lib/graphql/queries/admin'
 import { ArrowLeft, Calendar, Clock, Users, BookOpen, User, Edit, Trash2, Award, TrendingUp, Star } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
 import type { Council } from '@/types/defence'
 import { AssignTopicsDialog } from '@/components/admin/councils/assign-topics-dialog'
-import { DELETE_COUNCIL, UPDATE_COUNCIL, ASSIGN_TOPIC_TO_COUNCIL } from '@/lib/graphql/mutations/admin.mutations'
+import { DELETE_COUNCIL, UPDATE_COUNCIL } from '@/lib/graphql/mutations/admin'
+import { ASSIGN_TOPIC_TO_COUNCIL } from '@/lib/graphql/mutations/department'
 
 const getPositionLabel = (position: string) => {
   switch (position) {
@@ -50,10 +53,28 @@ const getStageColor = (stage: string) => {
 export default function CouncilDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [council, setCouncil] = useState<Council | null>(null)
+  const councilId = params.id as string
   const [isAssignTopicsDialogOpen, setIsAssignTopicsDialogOpen] = useState(false)
   const [timeStart, setTimeStart] = useState('')
   const [hasChanges, setHasChanges] = useState(false)
+
+  const { data, loading, error } = useQuery(GET_COUNCIL_DETAIL, {
+    variables: { search: createDetailSearch(councilId) },
+    skip: !councilId,
+  })
+
+  useEffect(() => {
+    const council = (data as any)?.affair?.councils?.data?.[0]
+    if (council?.timeStart) {
+      const date = new Date(council.timeStart)
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const hours = String(date.getHours()).padStart(2, '0')
+      const minutes = String(date.getMinutes()).padStart(2, '0')
+      setTimeStart(`${year}-${month}-${day}T${hours}:${minutes}`)
+    }
+  }, [data])
 
   const [updateCouncil, { loading: updateLoading }] = useMutation(UPDATE_COUNCIL, {
     onCompleted: () => {
@@ -68,7 +89,7 @@ export default function CouncilDetailPage() {
 
   const [deleteCouncil, { loading: deleteLoading }] = useMutation(DELETE_COUNCIL, {
     onCompleted: () => {
-      router.push(council?.backUrl || '/admin/councils')
+      router.push('/admin/councils')
     },
     onError: (error) => {
       alert(`Lỗi khi xóa hội đồng: ${error.message}`)
@@ -81,25 +102,30 @@ export default function CouncilDetailPage() {
     },
   })
 
-  useEffect(() => {
-    // Lấy data từ sessionStorage
-    const storedData = sessionStorage.getItem('councilDetailData')
-    if (storedData) {
-      const data = JSON.parse(storedData)
-      setCouncil(data)
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    )
+  }
 
-      // Set initial time
-      if (data.timeStart) {
-        const date = new Date(data.timeStart)
-        const year = date.getFullYear()
-        const month = String(date.getMonth() + 1).padStart(2, '0')
-        const day = String(date.getDate()).padStart(2, '0')
-        const hours = String(date.getHours()).padStart(2, '0')
-        const minutes = String(date.getMinutes()).padStart(2, '0')
-        setTimeStart(`${year}-${month}-${day}T${hours}:${minutes}`)
-      }
-    }
-  }, [])
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
+          <button onClick={() => router.push('/admin/councils')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
+        </div>
+      </div>
+    )
+  }
+
+  const council = (data as any)?.affair?.councils?.data?.[0]
 
   if (!council) {
     return (
@@ -109,7 +135,7 @@ export default function CouncilDetailPage() {
             Không tìm thấy thông tin hội đồng
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Vui lòng quay lại và chọn hội đồng để xem chi tiết
+            Hội đồng với ID {councilId} không tồn tại
           </p>
           <button
             onClick={() => router.push('/admin/councils')}
@@ -122,56 +148,15 @@ export default function CouncilDetailPage() {
     )
   }
 
-  const handleTopicClick = (topicCode: string, topicCouncil: any) => {
-    const topicData = {
-      id: topicCode,
-      title: topicCouncil.topic?.title || topicCouncil.title,
-      majorCode: council!.majorCode,
-      semesterCode: council!.semesterCode,
-      status: 'IN_PROGRESS',
-      percentStage1: 0,
-      percentStage2: 0,
-      createdAt: council!.createdAt,
-      updatedAt: council!.updatedAt,
-      topicCouncils: [topicCouncil],
-      backUrl: `/admin/councils/${council!.id}`,
-    }
-    sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
+  const handleTopicClick = (topicCode: string) => {
     router.push(`/admin/topics/${topicCode}`)
   }
 
   const handleStudentClick = (enrollment: any) => {
-    const studentData = {
-      id: enrollment.studentCode,
-      email: enrollment.student?.email || '',
-      phone: '',
-      username: enrollment.student?.username || enrollment.studentCode,
-      gender: 'male',
-      majorCode: council!.majorCode,
-      classCode: '',
-      semesterCode: council!.semesterCode,
-      createdAt: council!.createdAt || new Date().toISOString(),
-      updatedAt: council!.updatedAt || new Date().toISOString(),
-      enrollments: [enrollment],
-      backUrl: `/admin/councils/${council!.id}`,
-    }
-    sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
     router.push(`/admin/students/${enrollment.studentCode}`)
   }
 
   const handleTeacherClick = (teacher: any) => {
-    const teacherData = {
-      id: teacher.id,
-      email: teacher.email,
-      username: teacher.username,
-      gender: 'male',
-      majorCode: council!.majorCode,
-      semesterCode: council!.semesterCode,
-      createdAt: council!.createdAt || new Date().toISOString(),
-      updatedAt: council!.updatedAt || new Date().toISOString(),
-      backUrl: `/admin/councils/${council!.id}`,
-    }
-    sessionStorage.setItem('teacherDetailData', JSON.stringify(teacherData))
     router.push(`/admin/teachers/${teacher.id}`)
   }
 
@@ -241,7 +226,7 @@ export default function CouncilDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push(council.backUrl || '/admin/councils')}
+            onClick={() => router.push('/admin/councils')}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -330,7 +315,7 @@ export default function CouncilDetailPage() {
               Thành viên Hội đồng
             </h2>
             <div className="space-y-2">
-              {council.defences.map((defence) => (
+              {council.defences.map((defence: any) => (
                 <div
                   key={defence.id}
                   className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-700 rounded-lg"
@@ -372,7 +357,7 @@ export default function CouncilDetailPage() {
 
           {council.topicCouncils && council.topicCouncils.length > 0 ? (
             <div className="space-y-3">
-              {council.topicCouncils.map((topicCouncil, index) => (
+              {council.topicCouncils.map((topicCouncil: any, index: number) => (
                 <div
                   key={topicCouncil.id}
                   className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
@@ -407,7 +392,7 @@ export default function CouncilDetailPage() {
                   </div>
 
                   <button
-                    onClick={() => handleTopicClick(topicCouncil.topicCode, topicCouncil)}
+                    onClick={() => handleTopicClick(topicCouncil.topicCode)}
                     className="group text-left w-full mb-3"
                   >
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
@@ -613,7 +598,7 @@ export default function CouncilDetailPage() {
                         GVHD:
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {topicCouncil.supervisors.map((sup) => (
+                        {topicCouncil.supervisors.map((sup: any) => (
                           <button
                             key={sup.id}
                             onClick={() => handleTeacherClick(sup.teacher)}

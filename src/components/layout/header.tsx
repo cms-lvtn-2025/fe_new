@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTheme } from '@/lib/contexts/theme-context'
+import { clearAuthData } from '@/lib/api/auth'
 import SemesterSwitcher from './semester-switcher'
 
 interface HeaderProps {
@@ -40,8 +41,8 @@ export default function Header({ userRole }: HeaderProps) {
       }
     }
 
-    // Clear localStorage
-    localStorage.clear()
+    // Clear all auth data (localStorage + cookies)
+    clearAuthData()
 
     // Redirect to login
     router.push('/login')

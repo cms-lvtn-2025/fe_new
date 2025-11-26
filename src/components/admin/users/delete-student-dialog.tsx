@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { DELETE_STUDENT } from '@/lib/graphql/mutations/admin.mutations'
+import { DELETE_STUDENT } from '@/lib/graphql/mutations/admin'
 import { X, AlertTriangle } from 'lucide-react'
 
 interface Student {

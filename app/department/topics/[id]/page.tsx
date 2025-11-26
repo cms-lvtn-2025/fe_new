@@ -1,7 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useQuery } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_DEPARTMENT_TOPIC_DETAIL } from '@/lib/graphql/queries/department'
 import { ArrowLeft, Calendar, FileText, Users, Award, Clock, TrendingUp, Star } from 'lucide-react'
 
 interface TopicDetail {
@@ -119,40 +122,12 @@ const STAGE_LABELS: Record<string, string> = {
 export default function TopicDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [topic, setTopic] = useState<TopicDetail | null>(null)
-  const [showGradeModal, setShowGradeModal] = useState(false)
-  const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null)
-  const [departmentGrade, setDepartmentGrade] = useState<string>('')
-  const [gradeNotes, setGradeNotes] = useState<string>('')
+  const topicId = params.id as string
 
-  useEffect(() => {
-    // Lấy data từ sessionStorage
-    const storedData = sessionStorage.getItem('topicDetailData')
-    if (storedData) {
-      const data = JSON.parse(storedData)
-      setTopic(data)
-    }
-  }, [])
-
-  const handleOpenGradeModal = (enrollment: any) => {
-    setSelectedEnrollment(enrollment)
-    setDepartmentGrade(enrollment.final?.departmentGrade?.toString() || '')
-    setGradeNotes(enrollment.final?.notes || '')
-    setShowGradeModal(true)
-  }
-
-  const handleSubmitGrade = async (e: React.FormEvent) => {
-    e.preventDefault()
-
-    // TODO: Backend API call will be implemented later
-    alert('Chức năng chấm điểm sẽ được triển khai sau khi backend hoàn thiện')
-
-    // For now, just close the modal
-    setShowGradeModal(false)
-    setSelectedEnrollment(null)
-    setDepartmentGrade('')
-    setGradeNotes('')
-  }
+  const { data, loading, error } = useQuery(GET_DEPARTMENT_TOPIC_DETAIL, {
+    variables: { search: createDetailSearch(topicId) },
+    skip: !topicId,
+  })
 
   const handleStudentClick = (student: any, studentCode: string) => {
     const studentData = {
@@ -168,7 +143,6 @@ export default function TopicDetailPage() {
       updatedAt: topic!.updatedAt || new Date().toISOString(),
       backUrl: `/department/topics/${topic!.id}`,
     }
-    sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
     router.push(`/department/students/${studentCode}`)
   }
 
@@ -184,9 +158,33 @@ export default function TopicDetailPage() {
       updatedAt: topic!.updatedAt || new Date().toISOString(),
       backUrl: `/department/topics/${topic!.id}`,
     }
-    sessionStorage.setItem('teacherDetailData', JSON.stringify(teacherData))
     router.push(`/department/teachers/${teacher.id}`)
   }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
+          <button onClick={() => router.push('/department/topics')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
+        </div>
+      </div>
+    )
+  }
+
+  const topic = (data as any)?.department?.topics?.data?.[0]
 
   if (!topic) {
     return (
@@ -196,7 +194,7 @@ export default function TopicDetailPage() {
             Không tìm thấy thông tin đề tài
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Vui lòng quay lại và chọn đề tài để xem chi tiết
+            Đề tài với ID {topicId} không tồn tại
           </p>
           <button
             onClick={() => router.push('/department/topics')}
@@ -215,7 +213,7 @@ export default function TopicDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push(topic.backUrl || '/department/topics')}
+            onClick={() => router.push('/department/topics')}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -305,7 +303,7 @@ export default function TopicDetailPage() {
               Hội đồng bảo vệ
             </h2>
             <div className="space-y-4">
-              {topic.topicCouncils.map((tc) => (
+              {topic.topicCouncils.map((tc: any) => (
                 <div
                   key={tc.id}
                   className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
@@ -344,7 +342,7 @@ export default function TopicDetailPage() {
                         Giảng viên hướng dẫn:
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {tc.supervisors.map((sup) => (
+                        {tc.supervisors.map((sup: any) => (
                           <button
                             key={sup.id}
                             onClick={() => handleTeacherClick(sup.teacher)}
@@ -366,20 +364,13 @@ export default function TopicDetailPage() {
                           className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600"
                         >
                           {/* Student Info */}
-                          <div className="flex items-center justify-between mb-3">
+                          <div className="mb-3">
                             <button
                               onClick={() => handleStudentClick(enr.student, enr.studentCode)}
                               className="flex items-center gap-2 text-gray-900 dark:text-gray-100 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                             >
                               <Users className="w-4 h-4" />
                               {enr.student?.username || enr.studentCode}
-                            </button>
-                            <button
-                              onClick={() => handleOpenGradeModal(enr)}
-                              className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors flex items-center gap-2"
-                            >
-                              <Award className="w-4 h-4" />
-                              Chấm điểm bộ môn
                             </button>
                           </div>
 
@@ -417,18 +408,6 @@ export default function TopicDetailPage() {
                                   </div>
                                   <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                                     {enr.final.supervisorGrade !== null ? enr.final.supervisorGrade : '--'}
-                                  </p>
-                                </div>
-
-                                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Award className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                      Điểm bộ môn
-                                    </span>
-                                  </div>
-                                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                    {enr.final.departmentGrade !== null ? enr.final.departmentGrade : '--'}
                                   </p>
                                 </div>
 
@@ -581,7 +560,7 @@ export default function TopicDetailPage() {
               Tài liệu
             </h2>
             <div className="space-y-2">
-              {topic.files.map((file) => (
+              {topic.files.map((file: any) => (
                 <div
                   key={file.id}
                   className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -630,78 +609,6 @@ export default function TopicDetailPage() {
           </div>
         </div>
       </div>
-
-      {/* Grade Modal */}
-      {showGradeModal && selectedEnrollment && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">
-              Chấm điểm bộ môn
-            </h3>
-
-            <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/30 rounded-lg">
-              <p className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                Sinh viên: <span className="text-blue-600 dark:text-blue-400">
-                  {selectedEnrollment.student?.username || selectedEnrollment.studentCode}
-                </span>
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmitGrade} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Điểm bộ môn (0-10) <span className="text-red-600">*</span>
-                </label>
-                <input
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  max="10"
-                  value={departmentGrade}
-                  onChange={(e) => setDepartmentGrade(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder="VD: 8.5"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Ghi chú
-                </label>
-                <textarea
-                  value={gradeNotes}
-                  onChange={(e) => setGradeNotes(e.target.value)}
-                  rows={3}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                  placeholder="Nhập ghi chú (nếu có)..."
-                />
-              </div>
-
-              <div className="flex gap-3 justify-end pt-4">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowGradeModal(false)
-                    setSelectedEnrollment(null)
-                    setDepartmentGrade('')
-                    setGradeNotes('')
-                  }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
-                >
-                  Hủy
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 rounded-md"
-                >
-                  Lưu điểm
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

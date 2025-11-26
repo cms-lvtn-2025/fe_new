@@ -1,0 +1,112 @@
+
+> fe_new@1.0.0 build
+> next build
+
+   ▲ Next.js 16.0.1 (Turbopack)
+   - Environments: .env
+
+ ⚠ The "middleware" file convention is deprecated. Please use "proxy" instead. Learn more: https://nextjs.org/docs/messages/middleware-to-proxy
+   Creating an optimized production build ...
+
+> Build error occurred
+Error: Turbopack build failed with 4 errors:
+./app/teacher/councils/[id]/page.tsx:6:1
+Export GET_DEFENCE_DETAIL doesn't exist in target module
+[0m [90m 4 |[39m [36mimport[39m { useRouter[33m,[39m useParams } [36mfrom[39m [32m'next/navigation'[39m
+ [90m 5 |[39m [36mimport[39m { useQuery } [36mfrom[39m [32m'@apollo/client/react'[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mGET_DEFENCE_DETAIL[39m } [36mfrom[39m [32m'@/lib/graphql/queries/teacher'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m {
+ [90m 8 |[39m   [33mArrowLeft[39m[33m,[39m
+ [90m 9 |[39m   [33mUsers[39m[33m,[39m[0m
+
+The export GET_DEFENCE_DETAIL was not found in module [project]/src/lib/graphql/queries/teacher/index.ts [app-client] (ecmascript).
+Did you mean to import GET_MY_DEFENCES?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./app/teacher/councils/[id]/page.tsx [Client Component Browser]
+    ./app/teacher/councils/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/teacher/councils/[id]/page.tsx [Client Component SSR]
+    ./app/teacher/councils/[id]/page.tsx [Server Component]
+
+
+./app/teacher/councils/[id]/page.tsx:6:1
+Export GET_DEFENCE_DETAIL doesn't exist in target module
+[0m [90m 4 |[39m [36mimport[39m { useRouter[33m,[39m useParams } [36mfrom[39m [32m'next/navigation'[39m
+ [90m 5 |[39m [36mimport[39m { useQuery } [36mfrom[39m [32m'@apollo/client/react'[39m
+[31m[1m>[22m[39m[90m 6 |[39m [36mimport[39m { [33mGET_DEFENCE_DETAIL[39m } [36mfrom[39m [32m'@/lib/graphql/queries/teacher'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 7 |[39m [36mimport[39m {
+ [90m 8 |[39m   [33mArrowLeft[39m[33m,[39m
+ [90m 9 |[39m   [33mUsers[39m[33m,[39m[0m
+
+The export GET_DEFENCE_DETAIL was not found in module [project]/src/lib/graphql/queries/teacher/index.ts [app-ssr] (ecmascript).
+Did you mean to import GET_MY_DEFENCES?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./app/teacher/councils/[id]/page.tsx [Client Component Browser]
+    ./app/teacher/councils/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/teacher/councils/[id]/page.tsx [Client Component SSR]
+    ./app/teacher/councils/[id]/page.tsx [Server Component]
+
+
+./app/teacher/topics/[id]/page.tsx:5:1
+Export GET_TOPIC_COUNCIL_DETAIL doesn't exist in target module
+[0m [90m 3 |[39m [36mimport[39m { useRouter[33m,[39m useParams } [36mfrom[39m [32m'next/navigation'[39m
+ [90m 4 |[39m [36mimport[39m { useQuery } [36mfrom[39m [32m'@apollo/client/react'[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m { [33mGET_TOPIC_COUNCIL_DETAIL[39m } [36mfrom[39m [32m'@/lib/graphql/queries/teacher'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m [36mimport[39m {
+ [90m 7 |[39m   [33mArrowLeft[39m[33m,[39m
+ [90m 8 |[39m   [33mFileText[39m[33m,[39m[0m
+
+The export GET_TOPIC_COUNCIL_DETAIL was not found in module [project]/src/lib/graphql/queries/teacher/index.ts [app-client] (ecmascript).
+Did you mean to import GET_MY_SUPERVISED_TOPIC_COUNCILS?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./app/teacher/topics/[id]/page.tsx [Client Component Browser]
+    ./app/teacher/topics/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/teacher/topics/[id]/page.tsx [Client Component SSR]
+    ./app/teacher/topics/[id]/page.tsx [Server Component]
+
+
+./app/teacher/topics/[id]/page.tsx:5:1
+Export GET_TOPIC_COUNCIL_DETAIL doesn't exist in target module
+[0m [90m 3 |[39m [36mimport[39m { useRouter[33m,[39m useParams } [36mfrom[39m [32m'next/navigation'[39m
+ [90m 4 |[39m [36mimport[39m { useQuery } [36mfrom[39m [32m'@apollo/client/react'[39m
+[31m[1m>[22m[39m[90m 5 |[39m [36mimport[39m { [33mGET_TOPIC_COUNCIL_DETAIL[39m } [36mfrom[39m [32m'@/lib/graphql/queries/teacher'[39m
+ [90m   |[39m [31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m[31m[1m^[22m[39m
+ [90m 6 |[39m [36mimport[39m {
+ [90m 7 |[39m   [33mArrowLeft[39m[33m,[39m
+ [90m 8 |[39m   [33mFileText[39m[33m,[39m[0m
+
+The export GET_TOPIC_COUNCIL_DETAIL was not found in module [project]/src/lib/graphql/queries/teacher/index.ts [app-ssr] (ecmascript).
+Did you mean to import GET_MY_SUPERVISED_TOPIC_COUNCILS?
+All exports of the module are statically known (It doesn't have dynamic exports). So it's known statically that the requested export doesn't exist.
+
+Import traces:
+  Client Component Browser:
+    ./app/teacher/topics/[id]/page.tsx [Client Component Browser]
+    ./app/teacher/topics/[id]/page.tsx [Server Component]
+
+  Client Component SSR:
+    ./app/teacher/topics/[id]/page.tsx [Client Component SSR]
+    ./app/teacher/topics/[id]/page.tsx [Server Component]
+
+
+    at <unknown> (./app/teacher/councils/[id]/page.tsx:6:1)
+    at <unknown> (./app/teacher/councils/[id]/page.tsx:6:1)
+    at <unknown> (./app/teacher/topics/[id]/page.tsx:5:1)
+    at <unknown> (./app/teacher/topics/[id]/page.tsx:5:1)

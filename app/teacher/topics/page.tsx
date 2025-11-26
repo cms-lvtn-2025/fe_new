@@ -84,10 +84,8 @@ export default function TeacherTopicsPage() {
   const { topicCouncils, total, loading, error, refetch } = useMySupervisedTopicCouncils({
     pagination: {
       page: currentPage,
-      pageSize,
-      sortBy: 'created_at',
-      descending: true
-    },
+      pageSize
+    , sortBy: 'created_at', descending: true },
     filters: buildFilters()
   })
 
@@ -118,12 +116,7 @@ export default function TeacherTopicsPage() {
 
   const handleViewDetail = (topicCouncil: any) => {
     const topicCouncilData = {
-      id: topicCouncil.id,
-      topicCouncilCode: topicCouncil.topicCouncilCode,
-      teacherSupervisorCode: topicCouncil.teacherSupervisorCode,
-      topicCouncil: topicCouncil.topicCouncil,
-      createdAt: topicCouncil.createdAt,
-      updatedAt: topicCouncil.updatedAt,
+      ...topicCouncil,
       backUrl: '/teacher/topics'
     }
     sessionStorage.setItem('topicCouncilDetailData', JSON.stringify(topicCouncilData))
@@ -243,9 +236,8 @@ export default function TeacherTopicsPage() {
                   </tr>
                 ) : (
                   topicCouncils.map((tc: any) => {
-                    const topic = tc.topicCouncil?.topic
-                    const topicCouncil = tc.topicCouncil
-                    const enrollments = topicCouncil?.enrollments || []
+                    const topic = tc.topic
+                    const enrollments = tc.enrollments || []
 
                     return (
                       <tr key={tc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -267,7 +259,7 @@ export default function TeacherTopicsPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded">
-                            {STAGE_LABELS[topicCouncil?.stage] || topicCouncil?.stage || '-'}
+                            {STAGE_LABELS[tc.stage] || tc.stage || '-'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -297,15 +289,15 @@ export default function TeacherTopicsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {topicCouncil?.timeStart ? (
+                          {tc?.timeStart ? (
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="w-4 h-4 text-gray-400" />
                               <div>
                                 <div className="text-gray-900 dark:text-gray-100">
-                                  {new Date(topicCouncil.timeStart).toLocaleDateString('vi-VN')}
+                                  {new Date(tc.timeStart).toLocaleDateString('vi-VN')}
                                 </div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(topicCouncil.timeStart).toLocaleTimeString('vi-VN', {
+                                  {new Date(tc.timeStart).toLocaleTimeString('vi-VN', {
                                     hour: '2-digit',
                                     minute: '2-digit'
                                   })}

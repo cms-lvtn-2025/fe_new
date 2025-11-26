@@ -4,8 +4,7 @@ import { useState } from 'react'
 import {
   useDepartmentCouncils,
   useCreateCouncil,
-  useDepartmentMajors,
-  useDepartmentSemesters
+  useDepartmentMajors
 } from '@/lib/graphql/hooks'
 import { BookOpen, Plus, Users, Calendar, Eye } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -61,13 +60,15 @@ export default function DepartmentCouncilsPage() {
       page: currentPage,
       pageSize,
       sortBy: 'created_at',
-      descending: true
+      descending: true,
     },
     filters: buildFilters()
   })
 
-  const { majors } = useDepartmentMajors({ pagination: { page: 1, pageSize: 100 } })
-  const { semesters } = useDepartmentSemesters({ pagination: { page: 1, pageSize: 100 } })
+  const { majors } = useDepartmentMajors({
+    pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+    filters: []
+  })
   const { createCouncil, loading: creating } = useCreateCouncil()
 
   const totalPages = Math.ceil(total / pageSize)
@@ -75,7 +76,7 @@ export default function DepartmentCouncilsPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!formData.title || !formData.majorCode || !formData.semesterCode) {
+    if (!formData.title || !formData.majorCode) {
       alert('Vui lòng điền đầy đủ thông tin')
       return
     }
@@ -86,7 +87,6 @@ export default function DepartmentCouncilsPage() {
           input: {
             title: formData.title,
             majorCode: formData.majorCode,
-            semesterCode: formData.semesterCode,
           }
         }
       })
@@ -312,24 +312,6 @@ export default function DepartmentCouncilsPage() {
                   {majors.map((major: any) => (
                     <option key={major.id} value={major.id}>
                       {major.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Học kỳ <span className="text-red-600">*</span>
-                </label>
-                <select
-                  value={formData.semesterCode}
-                  onChange={(e) => setFormData({ ...formData, semesterCode: e.target.value })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100"
-                >
-                  <option value="">Chọn học kỳ</option>
-                  {semesters.map((semester: any) => (
-                    <option key={semester.id} value={semester.id}>
-                      {semester.title}
                     </option>
                   ))}
                 </select>

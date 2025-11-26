@@ -3,7 +3,7 @@
 import React, { useState, useMemo } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { GET_UNASSIGNED_TOPIC_COUNCILS } from '@/lib/graphql/queries/admin/topic.queries'
-import { ASSIGN_TOPIC_TO_COUNCIL } from '@/lib/graphql/mutations/admin.mutations'
+import { ASSIGN_TOPIC_TO_COUNCIL } from '@/lib/graphql/mutations/department'
 import { X, BookOpen, AlertCircle, Search, Users, User } from 'lucide-react'
 import Modal from '@/components/common/Modal'
 import Loading from '@/components/common/Loading'
@@ -118,7 +118,7 @@ export function AssignTopicsDialog({
 
   // Extract unassigned topic councils (prefer stage 2, fallback to stage 1)
   const unassignedTopicCouncils = useMemo(() => {
-    if (!(data as any)?.getAllTopics?.data) return []
+    if (!(data as any)?.affair?.topics?.data) return []
 
     const topics: Topic[] = (data as any).getAllTopics.data
     const unassigned: TopicCouncil[] = []

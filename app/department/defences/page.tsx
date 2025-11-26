@@ -11,7 +11,8 @@ export default function DepartmentDefencesPage() {
   const [pageSize, setPageSize] = useState(10)
 
   const { councils, loading, error, refetch } = useDepartmentDefenceSchedule({
-    pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true }
+    pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+    filters: []
   })
 
   // Create events list from councils

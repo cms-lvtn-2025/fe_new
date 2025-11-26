@@ -1,7 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useQuery } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_STUDENT_DETAIL } from '@/lib/graphql/queries/admin'
 import { ArrowLeft, Mail, Phone, BookOpen, Award, Calendar } from 'lucide-react'
 
 interface StudentDetail {
@@ -61,16 +64,46 @@ const GENDER_LABELS: Record<string, string> = {
 export default function StudentDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [student, setStudent] = useState<StudentDetail | null>(null)
+  const studentId = params.id as string
 
-  useEffect(() => {
-    // Lấy data từ sessionStorage
-    const storedData = sessionStorage.getItem('studentDetailData')
-    if (storedData) {
-      const data = JSON.parse(storedData)
-      setStudent(data)
-    }
-  }, [])
+  const { data, loading, error } = useQuery(GET_STUDENT_DETAIL, {
+    variables: { search: createDetailSearch(studentId) },
+    skip: !studentId,
+  })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 font-medium mb-2">
+            Lỗi khi tải dữ liệu
+          </p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            {error.message}
+          </p>
+          <button
+            onClick={() => router.push('/admin/users')}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          >
+            Quay lại
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  const student = (data as any)?.affair?.students?.data?.[0]
 
   if (!student) {
     return (
@@ -80,7 +113,7 @@ export default function StudentDetailPage() {
             Không tìm thấy thông tin sinh viên
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Vui lòng quay lại và chọn sinh viên để xem chi tiết
+            Sinh viên với ID {studentId} không tồn tại
           </p>
           <button
             onClick={() => router.push('/admin/users')}
@@ -99,7 +132,7 @@ export default function StudentDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push(student.backUrl || '/admin/users')}
+            onClick={() => router.push('/admin/users')}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -108,7 +141,7 @@ export default function StudentDetailPage() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {student.username}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">MSSV: {student.id}</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">MSSV: {student.mssv || student.id}</p>
           </div>
         </div>
 
@@ -173,7 +206,7 @@ export default function StudentDetailPage() {
               Đề tài đăng ký
             </h2>
             <div className="space-y-4">
-              {student.enrollments.map((enrollment) => (
+              {student.enrollments.map((enrollment: any) => (
                 <div
                   key={enrollment.id}
                   className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"

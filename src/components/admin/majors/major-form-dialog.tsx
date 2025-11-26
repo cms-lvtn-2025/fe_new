@@ -1,11 +1,12 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useMutation, useQuery } from '@apollo/client/react'
-import { CREATE_MAJOR, UPDATE_MAJOR } from '@/lib/graphql/mutations/admin.mutations'
+import { CREATE_MAJOR, UPDATE_MAJOR } from '@/lib/graphql/mutations/admin'
 import { GET_ALL_FACULTIES } from '@/lib/graphql/queries/admin'
 import { X, AlertCircle } from 'lucide-react'
 import Modal from '@/components/common/Modal'
+import { Autocomplete, AutocompleteOption } from '@/components/common/Autocomplete'
 
 interface Major {
   id: string
@@ -32,21 +33,61 @@ export function MajorFormDialog({ isOpen, onClose, major, onSuccess }: MajorForm
     facultyCode: '',
   })
   const [error, setError] = useState('')
+  const [facultySearch, setFacultySearch] = useState('')
 
   const isEdit = !!major
 
-  // Fetch faculties for select
-  const { data: facultiesData } = useQuery(GET_ALL_FACULTIES, {
+  // Build filters for faculty search
+  const buildFacultyFilters = () => {
+    if (!facultySearch.trim()) return []
+    return [
+      {
+        group: {
+          logic: 'OR',
+          filters: [
+            {
+              condition: {
+                field: 'title',
+                operator: 'LIKE',
+                values: [facultySearch.trim()],
+              },
+            },
+            {
+              condition: {
+                field: 'id',
+                operator: 'LIKE',
+                values: [facultySearch.trim()],
+              },
+            },
+          ],
+        },
+      },
+    ]
+  }
+
+  // Fetch faculties with search filter
+  const { data: facultiesData, loading: facultiesLoading } = useQuery(GET_ALL_FACULTIES, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
-        filters: [],
+        pagination: { page: 1, pageSize: 20, sortBy: 'created_at', descending: true },
+        filters: buildFacultyFilters(),
       },
     },
     skip: !isOpen,
   })
 
-  const faculties: Faculty[] = (facultiesData as any)?.getAllFaculties?.data || []
+  const faculties: Faculty[] = (facultiesData as any)?.affair?.faculties?.data || []
+
+  // Convert faculties to autocomplete options
+  const facultyOptions: AutocompleteOption[] = useMemo(
+    () =>
+      faculties.map((f) => ({
+        value: f.id,
+        label: f.title,
+        description: `Mã: ${f.id}`,
+      })),
+    [faculties]
+  )
 
   const [createMajor, { loading: createLoading }] = useMutation(CREATE_MAJOR, {
     onCompleted: () => {
@@ -122,6 +163,7 @@ export function MajorFormDialog({ isOpen, onClose, major, onSuccess }: MajorForm
           variables: {
             input: {
               id: formData.id,
+              ms: formData.id,
               title: formData.title,
               facultyCode: formData.facultyCode,
             },
@@ -196,24 +238,21 @@ export function MajorFormDialog({ isOpen, onClose, major, onSuccess }: MajorForm
           />
         </div>
 
-        {/* Faculty Select */}
+        {/* Faculty Select with Search */}
         <div>
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             Khoa <span className="text-red-500">*</span>
           </label>
-          <select
+          <Autocomplete
+            options={facultyOptions}
             value={formData.facultyCode}
-            onChange={(e) => setFormData({ ...formData, facultyCode: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            onChange={(val) => setFormData({ ...formData, facultyCode: val })}
+            onSearch={setFacultySearch}
+            loading={facultiesLoading}
+            placeholder="Tìm kiếm khoa..."
             required
-          >
-            <option value="">-- Chọn khoa --</option>
-            {faculties.map((faculty) => (
-              <option key={faculty.id} value={faculty.id}>
-                {faculty.title}
-              </option>
-            ))}
-          </select>
+            emptyMessage="Không tìm thấy khoa nào"
+          />
         </div>
 
         {/* Error Message */}

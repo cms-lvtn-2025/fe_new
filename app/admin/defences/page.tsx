@@ -21,7 +21,7 @@ export default function DefenceSchedulePage() {
   const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 100 , sortBy: 'created_at', descending: true },
         filters: [],
       },
     },
@@ -29,15 +29,13 @@ export default function DefenceSchedulePage() {
   const [viewMode, setViewMode] = useState<ViewMode>('calendar')
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedMajor, setSelectedMajor] = useState<string>('all')
-  const [selectedSemester, setSelectedSemester] = useState<string>(semestersData ? (semestersData as any).getAllSemesters.data[0]?.id : 'all')
+  const [selectedSemester, setSelectedSemester] = useState<string>('all')
   const [selectedCouncil, setSelectedCouncil] = useState<Council | null>(null)
   const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
 
-  // Fetch semesters
-  
-
+  // Extract semesters from data
   const semesters = useMemo(() => {
-    return (semestersData as any)?.getAllSemesters?.data || []
+    return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
 
   // Build filters for query
@@ -63,15 +61,20 @@ export default function DefenceSchedulePage() {
       search: {
         pagination: {
           page: 1,
-          pageSize: 1000,
-          sortBy: 'time_start',
-          descending: false,
+          pageSize: 1000
         },
         filters,
       },
     },
     fetchPolicy: 'network-only',
   })
+
+  // Set default semester when semesters load
+  useEffect(() => {
+    if (selectedSemester === 'all' && semesters.length > 0) {
+      setSelectedSemester(semesters[0].id)
+    }
+  }, [semesters, selectedSemester])
 
   // Refetch when semester changes
   useEffect(() => {
@@ -80,7 +83,7 @@ export default function DefenceSchedulePage() {
 
   // Extract councils from data
   const councils: Council[] = useMemo(() => {
-    return data?.getAllCouncils?.data || []
+    return (data as any)?.affair?.councils?.data || []
   }, [data])
 
   // Get unique majors for filter

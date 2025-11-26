@@ -1,6 +1,24 @@
 "use client"
 
 import { useQuery, useMutation, useLazyQuery } from "@apollo/client/react"
+import type {
+  Student,
+  Teacher,
+  Semester,
+  Major,
+  Faculty,
+  Topic,
+  Council,
+  Enrollment,
+  Defence,
+  GradeReview,
+  TopicCouncil,
+  SearchRequestInput,
+  StudentQuery,
+  TeacherQuery,
+  DepartmentQuery,
+  AffairQuery,
+} from "@/types/graphql"
 import {
   // Student queries
   GET_MY_PROFILE,
@@ -37,8 +55,11 @@ import {
   CREATE_GRADE_DEFENCE,
   UPDATE_GRADE_DEFENCE,
   ADD_GRADE_DEFENCE_CRITERION,
+  UPDATE_GRADE_DEFENCE_CRITERION,
+  DELETE_GRADE_DEFENCE_CRITERION,
   UPDATE_GRADE_REVIEW,
-  CREATE_TOPIC,
+  CREATE_TOPIC_FOR_SUPERVISOR,
+  CREATE_TOPIC_COUNCIL_FOR_SUPERVISOR,
   // Academic Affairs mutations
   CREATE_TEACHER,
   UPDATE_TEACHER,
@@ -67,8 +88,6 @@ import {
   GET_DEPARTMENT_STUDENTS,
   GET_DEPARTMENT_TOPICS,
   GET_DEPARTMENT_TOPIC_DETAIL,
-  GET_DEPARTMENT_ENROLLMENTS,
-  GET_DEPARTMENT_ENROLLMENT_DETAIL,
   GET_DEPARTMENT_COUNCILS,
   GET_DEPARTMENT_COUNCIL_DETAIL,
   GET_DEPARTMENT_DEFENCES,
@@ -77,7 +96,10 @@ import {
   GET_DEPARTMENT_SEMESTERS,
   GET_DEPARTMENT_MAJORS,
   GET_DEPARTMENT_FACULTIES,
-  // Department Lecturer mutations
+} from "./queries"
+
+// Department Lecturer mutations - imported separately
+import {
   APPROVE_TOPIC_STAGE1,
   REJECT_TOPIC_STAGE1,
   ASSIGN_TOPIC_TO_COUNCIL,
@@ -85,7 +107,8 @@ import {
   UPDATE_DEPARTMENT_COUNCIL,
   ADD_DEFENCE_TO_COUNCIL,
   REMOVE_DEFENCE_FROM_COUNCIL,
-} from "./queries"
+  REMOVE_TOPIC_FROM_COUNCIL,
+} from "./mutations/department"
 
 // ============================================
 // STUDENT HOOKS
@@ -93,14 +116,15 @@ import {
 
 /**
  * Hook để lấy thông tin profile của sinh viên
+ * Updated for Backend Schema v2 - Namespace-based approach
  */
 export function useMyProfile() {
-  const { data, loading, error, refetch } = useQuery(GET_MY_PROFILE, {
+  const { data, loading, error, refetch } = useQuery<{ student: StudentQuery }>(GET_MY_PROFILE, {
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    profile: (data as any)?.getMyProfile,
+    profile: data?.student?.me,
     loading,
     error,
     refetch,
@@ -109,16 +133,17 @@ export function useMyProfile() {
 
 /**
  * Hook để lấy danh sách enrollments của sinh viên
+ * Updated for Backend Schema v2 - Namespace-based approach
  */
-export function useMyEnrollments(search?: any) {
-  const { data, loading, error, refetch } = useQuery(GET_MY_ENROLLMENTS, {
+export function useMyEnrollments(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ student: StudentQuery }>(GET_MY_ENROLLMENTS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    enrollments: (data as any)?.getMyEnrollments?.data || [],
-    total: (data as any)?.getMyEnrollments?.total || 0,
+    enrollments: data?.student?.enrollments?.data || [],
+    total: data?.student?.enrollments?.total || 0,
     loading,
     error,
     refetch,
@@ -127,16 +152,17 @@ export function useMyEnrollments(search?: any) {
 
 /**
  * Hook để lấy chi tiết enrollment
+ * Updated for Backend Schema v2 - Uses enrollments query with filter
  */
 export function useMyEnrollmentDetail(id: string | null) {
-  const { data, loading, error, refetch } = useQuery(GET_MY_ENROLLMENT_DETAIL, {
+  const { data, loading, error, refetch } = useQuery<{ student: StudentQuery }>(GET_MY_ENROLLMENT_DETAIL, {
     variables: { id },
     skip: !id,
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    enrollment: (data as any)?.getMyEnrollmentDetail,
+    enrollment: data?.student?.enrollments?.data?.[0],
     loading,
     error,
     refetch,
@@ -145,9 +171,10 @@ export function useMyEnrollmentDetail(id: string | null) {
 
 /**
  * Hook để lấy danh sách semesters của sinh viên
+ * Updated for Backend Schema v2 - Namespace-based approach
  */
-export function useMySemesters(search?: any) {
-  const { data, loading, error, refetch } = useQuery(GET_MY_SEMESTERS, {
+export function useMySemesters(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ student: StudentQuery }>(GET_MY_SEMESTERS, {
     variables: {
       search: search || {
         pagination: { page: 1, pageSize: 100 },
@@ -158,8 +185,8 @@ export function useMySemesters(search?: any) {
   })
 
   // Sort by createdAt descending (newest first)
-  const semestersData = (data as any)?.getMySemesters?.data || []
-  const semesters = [...semestersData].sort((a: any, b: any) => {
+  const semestersData = data?.student?.semesters?.data || []
+  const semesters = [...semestersData].sort((a: Semester, b: Semester) => {
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
     return dateB - dateA // Newest first
@@ -167,7 +194,7 @@ export function useMySemesters(search?: any) {
 
   return {
     semesters,
-    total: (data as any)?.getMySemesters?.total || 0,
+    total: data?.student?.semesters?.total || 0,
     loading,
     error,
     refetch,
@@ -210,14 +237,15 @@ export function useUploadFinalFile() {
 
 /**
  * Hook để lấy thông tin profile của giáo viên
+ * Updated for Backend Schema v2 - Namespace-based approach
  */
 export function useMyTeacherProfile() {
-  const { data, loading, error, refetch } = useQuery(GET_MY_TEACHER_PROFILE, {
+  const { data, loading, error, refetch } = useQuery<{ teacher: TeacherQuery }>(GET_MY_TEACHER_PROFILE, {
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    profile: (data as any)?.getMyTeacherProfile,
+    profile: data?.teacher?.me,
     loading,
     error,
     refetch,
@@ -226,17 +254,18 @@ export function useMyTeacherProfile() {
 
 /**
  * Hook để lấy danh sách topic councils mà giáo viên hướng dẫn
+ * Updated for Backend Schema v2 - Namespace-based approach
  */
-export function useMySupervisedTopicCouncils(search?: any, options?: { skip?: boolean }) {
-  const { data, loading, error, refetch } = useQuery(GET_MY_SUPERVISED_TOPIC_COUNCILS, {
+export function useMySupervisedTopicCouncils(search?: SearchRequestInput, options?: { skip?: boolean }) {
+  const { data, loading, error, refetch } = useQuery<{ teacher: TeacherQuery }>(GET_MY_SUPERVISED_TOPIC_COUNCILS, {
     variables: { search },
     fetchPolicy: "network-only",
     skip: options?.skip || false,
   })
 
   return {
-    topicCouncils: (data as any)?.getMySupervisedTopicCouncils?.data || [],
-    total: (data as any)?.getMySupervisedTopicCouncils?.total || 0,
+    topicCouncils: data?.teacher?.supervisor?.topicCouncils?.data || [],
+    total: data?.teacher?.supervisor?.topicCouncils?.total || 0,
     loading,
     error,
     refetch,
@@ -245,17 +274,18 @@ export function useMySupervisedTopicCouncils(search?: any, options?: { skip?: bo
 
 /**
  * Hook để lấy danh sách defence assignments của giáo viên
+ * Updated for Backend Schema v2 - Namespace-based approach
  */
-export function useMyDefences(search?: any, options?: { skip?: boolean }) {
-  const { data, loading, error, refetch } = useQuery(GET_MY_DEFENCES, {
+export function useMyDefences(search?: SearchRequestInput, options?: { skip?: boolean }) {
+  const { data, loading, error, refetch } = useQuery<{ teacher: TeacherQuery }>(GET_MY_DEFENCES, {
     variables: { search },
     fetchPolicy: "network-only",
     skip: options?.skip || false,
   })
 
   return {
-    defences: (data as any)?.getMyDefences?.data || [],
-    total: (data as any)?.getMyDefences?.total || 0,
+    defences: data?.teacher?.council?.defences?.data || [],
+    total: data?.teacher?.council?.defences?.total || 0,
     loading,
     error,
     refetch,
@@ -264,17 +294,18 @@ export function useMyDefences(search?: any, options?: { skip?: boolean }) {
 
 /**
  * Hook để lấy danh sách grade reviews của giáo viên
+ * Updated for Backend Schema v2 - Namespace-based approach
  */
-export function useMyGradeReviews(search?: any, options?: { skip?: boolean }) {
-  const { data, loading, error, refetch } = useQuery(GET_MY_GRADE_REVIEWS, {
+export function useMyGradeReviews(search?: SearchRequestInput, options?: { skip?: boolean }) {
+  const { data, loading, error, refetch } = useQuery<{ teacher: TeacherQuery }>(GET_MY_GRADE_REVIEWS, {
     variables: { search },
     fetchPolicy: "network-only",
     skip: options?.skip || false,
   })
 
   return {
-    gradeReviews: (data as any)?.getMyGradeReviews?.data || [],
-    total: (data as any)?.getMyGradeReviews?.total || 0,
+    gradeReviews: data?.teacher?.reviewer?.gradeReviews?.data || [],
+    total: data?.teacher?.reviewer?.gradeReviews?.total || 0,
     loading,
     error,
     refetch,
@@ -372,6 +403,36 @@ export function useAddGradeDefenceCriterion() {
 }
 
 /**
+ * Hook để cập nhật criterion của grade defence
+ */
+export function useUpdateGradeDefenceCriterion() {
+  const [updateCriterion, { loading, error }] = useMutation(UPDATE_GRADE_DEFENCE_CRITERION, {
+    refetchQueries: [{ query: GET_MY_DEFENCES }],
+  })
+
+  return {
+    updateCriterion,
+    loading,
+    error,
+  }
+}
+
+/**
+ * Hook để xóa criterion của grade defence
+ */
+export function useDeleteGradeDefenceCriterion() {
+  const [deleteCriterion, { loading, error }] = useMutation(DELETE_GRADE_DEFENCE_CRITERION, {
+    refetchQueries: [{ query: GET_MY_DEFENCES }],
+  })
+
+  return {
+    deleteCriterion,
+    loading,
+    error,
+  }
+}
+
+/**
  * Hook để cập nhật grade review
  */
 export function useUpdateGradeReview() {
@@ -387,15 +448,32 @@ export function useUpdateGradeReview() {
 }
 
 /**
- * Hook để tạo/gửi đề tài mới
+ * Hook để tạo/gửi đề tài mới (cho supervisor)
+ * Updated for Backend Schema v2
  */
 export function useCreateTopic() {
-  const [createTopic, { loading, error }] = useMutation(CREATE_TOPIC, {
+  const [createTopic, { loading, error }] = useMutation(CREATE_TOPIC_FOR_SUPERVISOR, {
     refetchQueries: [{ query: GET_MY_SUPERVISED_TOPIC_COUNCILS }],
   })
 
   return {
     createTopic,
+    loading,
+    error,
+  }
+}
+
+/**
+ * Hook để tạo topic council cho supervisor
+ * Updated for Backend Schema v2
+ */
+export function useCreateTopicCouncil() {
+  const [createTopicCouncil, { loading, error }] = useMutation(CREATE_TOPIC_COUNCIL_FOR_SUPERVISOR, {
+    refetchQueries: [{ query: GET_MY_SUPERVISED_TOPIC_COUNCILS }],
+  })
+
+  return {
+    createTopicCouncil,
     loading,
     error,
   }
@@ -407,16 +485,17 @@ export function useCreateTopic() {
 
 /**
  * Hook để lấy danh sách giáo viên
+ * Updated for Backend Schema v2
  */
-export function useListTeachers(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_LIST_TEACHERS, {
+export function useListTeachers(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_LIST_TEACHERS, {
     variables: { search },
     fetchPolicy: "network-only",
   })
 
   return {
-    teachers: (data as any)?.getListTeachers?.data || [],
-    total: (data as any)?.getListTeachers?.total || 0,
+    teachers: data?.affair?.teachers?.data || [],
+    total: data?.affair?.teachers?.total || 0,
     loading,
     error,
     refetch,
@@ -425,16 +504,17 @@ export function useListTeachers(search: any) {
 
 /**
  * Hook để lấy danh sách sinh viên
+ * Updated for Backend Schema v2
  */
-export function useListStudents(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_LIST_STUDENTS, {
+export function useListStudents(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_LIST_STUDENTS, {
     variables: { search },
     fetchPolicy: "network-only",
   })
 
   return {
-    students: (data as any)?.getListStudents?.data || [],
-    total: (data as any)?.getListStudents?.total || 0,
+    students: data?.affair?.students?.data || [],
+    total: data?.affair?.students?.total || 0,
     loading,
     error,
     refetch,
@@ -443,16 +523,17 @@ export function useListStudents(search: any) {
 
 /**
  * Hook để lấy chi tiết sinh viên
+ * Updated for Backend Schema v2
  */
 export function useStudentDetail(id: string | null) {
-  const { data, loading, error, refetch } = useQuery(GET_STUDENT_DETAIL, {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_STUDENT_DETAIL, {
     variables: { id },
     skip: !id,
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    student: (data as any)?.getStudentDetail,
+    student: data?.affair?.studentDetail,
     loading,
     error,
     refetch,
@@ -461,16 +542,17 @@ export function useStudentDetail(id: string | null) {
 
 /**
  * Hook để lấy chi tiết giáo viên
+ * Updated for Backend Schema v2
  */
 export function useTeacherDetail(id: string | null) {
-  const { data, loading, error, refetch } = useQuery(GET_TEACHER_DETAIL, {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_TEACHER_DETAIL, {
     variables: { id },
     skip: !id,
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    teacher: (data as any)?.getTeacherDetail,
+    teacher: data?.affair?.teacherDetail,
     loading,
     error,
     refetch,
@@ -479,9 +561,10 @@ export function useTeacherDetail(id: string | null) {
 
 /**
  * Hook để lấy danh sách semesters
+ * Updated for Backend Schema v2
  */
-export function useAllSemesters(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_SEMESTERS, {
+export function useAllSemesters(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_ALL_SEMESTERS, {
     variables: {
       search: search || {
         pagination: { page: 1, pageSize: 100 },
@@ -492,8 +575,8 @@ export function useAllSemesters(search: any) {
   })
 
   // Sort by createdAt descending (newest first)
-  const semestersData = (data as any)?.getAllSemesters?.data || []
-  const semesters = [...semestersData].sort((a: any, b: any) => {
+  const semestersData = data?.affair?.semesters?.data || []
+  const semesters = [...semestersData].sort((a: Semester, b: Semester) => {
     const dateA = a.createdAt ? new Date(a.createdAt).getTime() : 0
     const dateB = b.createdAt ? new Date(b.createdAt).getTime() : 0
     return dateB - dateA // Newest first
@@ -501,7 +584,7 @@ export function useAllSemesters(search: any) {
 
   return {
     semesters,
-    total: (data as any)?.getAllSemesters?.total || 0,
+    total: data?.affair?.semesters?.total || 0,
     loading,
     error,
     refetch,
@@ -510,16 +593,17 @@ export function useAllSemesters(search: any) {
 
 /**
  * Hook để lấy danh sách majors
+ * Updated for Backend Schema v2
  */
-export function useAllMajors(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_MAJORS, {
+export function useAllMajors(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_ALL_MAJORS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    majors: (data as any)?.getAllMajors?.data || [],
-    total: (data as any)?.getAllMajors?.total || 0,
+    majors: data?.affair?.majors?.data || [],
+    total: data?.affair?.majors?.total || 0,
     loading,
     error,
     refetch,
@@ -528,16 +612,17 @@ export function useAllMajors(search: any) {
 
 /**
  * Hook để lấy danh sách faculties
+ * Updated for Backend Schema v2
  */
-export function useAllFaculties(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_FACULTIES, {
+export function useAllFaculties(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_ALL_FACULTIES, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    faculties: (data as any)?.getAllFaculties?.data || [],
-    total: (data as any)?.getAllFaculties?.total || 0,
+    faculties: data?.affair?.faculties?.data || [],
+    total: data?.affair?.faculties?.total || 0,
     loading,
     error,
     refetch,
@@ -546,16 +631,17 @@ export function useAllFaculties(search: any) {
 
 /**
  * Hook để lấy danh sách topics
+ * Updated for Backend Schema v2
  */
-export function useAllTopics(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_TOPICS, {
+export function useAllTopics(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_ALL_TOPICS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    topics: (data as any)?.getAllTopics?.data || [],
-    total: (data as any)?.getAllTopics?.total || 0,
+    topics: data?.affair?.topics?.data || [],
+    total: data?.affair?.topics?.total || 0,
     loading,
     error,
     refetch,
@@ -564,16 +650,17 @@ export function useAllTopics(search: any) {
 
 /**
  * Hook để lấy chi tiết topic
+ * Updated for Backend Schema v2
  */
 export function useTopicDetail(id: string | null) {
-  const { data, loading, error, refetch } = useQuery(GET_TOPIC_DETAIL, {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_TOPIC_DETAIL, {
     variables: { id },
     skip: !id,
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    topic: (data as any)?.getTopicDetail,
+    topic: data?.affair?.topicDetail,
     loading,
     error,
     refetch,
@@ -582,16 +669,17 @@ export function useTopicDetail(id: string | null) {
 
 /**
  * Hook để lấy danh sách enrollments
+ * Updated for Backend Schema v2
  */
-export function useAllEnrollments(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_ENROLLMENTS, {
+export function useAllEnrollments(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_ALL_ENROLLMENTS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    enrollments: (data as any)?.getAllEnrollments?.data || [],
-    total: (data as any)?.getAllEnrollments?.total || 0,
+    enrollments: data?.affair?.enrollments?.data || [],
+    total: data?.affair?.enrollments?.total || 0,
     loading,
     error,
     refetch,
@@ -600,16 +688,17 @@ export function useAllEnrollments(search: any) {
 
 /**
  * Hook để lấy chi tiết enrollment
+ * Updated for Backend Schema v2
  */
 export function useEnrollmentDetail(id: string | null) {
-  const { data, loading, error, refetch } = useQuery(GET_ENROLLMENT_DETAIL, {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_ENROLLMENT_DETAIL, {
     variables: { id },
     skip: !id,
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    enrollment: (data as any)?.getEnrollmentDetail,
+    enrollment: data?.affair?.enrollmentDetail,
     loading,
     error,
     refetch,
@@ -618,16 +707,17 @@ export function useEnrollmentDetail(id: string | null) {
 
 /**
  * Hook để lấy danh sách councils
+ * Updated for Backend Schema v2
  */
-export function useAllCouncils(search: any) {
-  const { data, loading, error, refetch } = useQuery(GET_ALL_COUNCILS, {
+export function useAllCouncils(search: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_ALL_COUNCILS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    councils: (data as any)?.getAllCouncils?.data || [],
-    total: (data as any)?.getAllCouncils?.total || 0,
+    councils: data?.affair?.councils?.data || [],
+    total: data?.affair?.councils?.total || 0,
     loading,
     error,
     refetch,
@@ -636,16 +726,17 @@ export function useAllCouncils(search: any) {
 
 /**
  * Hook để lấy chi tiết council
+ * Updated for Backend Schema v2
  */
 export function useCouncilDetail(id: string | null) {
-  const { data, loading, error, refetch } = useQuery(GET_COUNCIL_DETAIL, {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_COUNCIL_DETAIL, {
     variables: { id },
     skip: !id,
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    council: (data as any)?.getCouncilDetail,
+    council: data?.affair?.councilDetail,
     loading,
     error,
     refetch,
@@ -654,17 +745,18 @@ export function useCouncilDetail(id: string | null) {
 
 /**
  * Hook để lấy danh sách defences theo council
+ * Updated for Backend Schema v2
  */
 export function useDefencesByCouncil(councilId: string | null) {
-  const { data, loading, error, refetch } = useQuery(GET_DEFENCES_BY_COUNCIL, {
+  const { data, loading, error, refetch } = useQuery<{ affair: AffairQuery }>(GET_DEFENCES_BY_COUNCIL, {
     variables: { councilId },
     skip: !councilId,
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    defences: (data as any)?.getDefencesByCouncil?.data || [],
-    total: (data as any)?.getDefencesByCouncil?.total || 0,
+    defences: data?.affair?.defencesByCouncil?.data || [],
+    total: data?.affair?.defencesByCouncil?.total || 0,
     loading,
     error,
     refetch,
@@ -857,16 +949,17 @@ export function useDeleteTopic() {
 
 /**
  * Hook để lấy danh sách giáo viên của khoa
+ * Updated for Backend Schema v2
  */
-export function useDepartmentTeachers(search?: any) {
-  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_TEACHERS, {
+export function useDepartmentTeachers(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(GET_DEPARTMENT_TEACHERS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    teachers: (data as any)?.getDepartmentTeachers?.data || [],
-    total: (data as any)?.getDepartmentTeachers?.total || 0,
+    teachers: data?.department?.teachers?.data || [],
+    total: data?.department?.teachers?.total || 0,
     loading,
     error,
     refetch,
@@ -875,16 +968,17 @@ export function useDepartmentTeachers(search?: any) {
 
 /**
  * Hook để lấy danh sách sinh viên của khoa
+ * Updated for Backend Schema v2
  */
-export function useDepartmentStudents(search?: any) {
-  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_STUDENTS, {
+export function useDepartmentStudents(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(GET_DEPARTMENT_STUDENTS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    students: (data as any)?.getDepartmentStudents?.data || [],
-    total: (data as any)?.getDepartmentStudents?.total || 0,
+    students: data?.department?.students?.data || [],
+    total: data?.department?.students?.total || 0,
     loading,
     error,
     refetch,
@@ -893,16 +987,17 @@ export function useDepartmentStudents(search?: any) {
 
 /**
  * Hook để lấy danh sách đề tài của khoa
+ * Updated for Backend Schema v2
  */
-export function useDepartmentTopics(search?: any) {
-  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_TOPICS, {
+export function useDepartmentTopics(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(GET_DEPARTMENT_TOPICS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    topics: (data as any)?.getDepartmentTopics?.data || [],
-    total: (data as any)?.getDepartmentTopics?.total || 0,
+    topics: data?.department?.topics?.data || [],
+    total: data?.department?.topics?.total || 0,
     loading,
     error,
     refetch,
@@ -911,9 +1006,10 @@ export function useDepartmentTopics(search?: any) {
 
 /**
  * Hook để lấy chi tiết đề tài của khoa
+ * Updated for Backend Schema v2
  */
 export function useDepartmentTopicDetail(id: string) {
-  const { data, loading, error, refetch } = useQuery(
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(
     GET_DEPARTMENT_TOPIC_DETAIL,
     {
       variables: { id },
@@ -923,49 +1019,7 @@ export function useDepartmentTopicDetail(id: string) {
   )
 
   return {
-    topic: (data as any)?.getDepartmentTopicDetail,
-    loading,
-    error,
-    refetch,
-  }
-}
-
-/**
- * Hook để lấy danh sách enrollments của khoa
- */
-export function useDepartmentEnrollments(search?: any) {
-  const { data, loading, error, refetch } = useQuery(
-    GET_DEPARTMENT_ENROLLMENTS,
-    {
-      variables: { search },
-      fetchPolicy: "cache-and-network",
-    }
-  )
-
-  return {
-    enrollments: (data as any)?.getDepartmentEnrollments?.data || [],
-    total: (data as any)?.getDepartmentEnrollments?.total || 0,
-    loading,
-    error,
-    refetch,
-  }
-}
-
-/**
- * Hook để lấy chi tiết enrollment của khoa
- */
-export function useDepartmentEnrollmentDetail(id: string) {
-  const { data, loading, error, refetch } = useQuery(
-    GET_DEPARTMENT_ENROLLMENT_DETAIL,
-    {
-      variables: { id },
-      fetchPolicy: "cache-and-network",
-      skip: !id,
-    }
-  )
-
-  return {
-    enrollment: (data as any)?.getDepartmentEnrollmentDetail,
+    topic: data?.department?.topicDetail,
     loading,
     error,
     refetch,
@@ -974,16 +1028,17 @@ export function useDepartmentEnrollmentDetail(id: string) {
 
 /**
  * Hook để lấy danh sách hội đồng của khoa
+ * Updated for Backend Schema v2
  */
-export function useDepartmentCouncils(search?: any) {
-  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_COUNCILS, {
+export function useDepartmentCouncils(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(GET_DEPARTMENT_COUNCILS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
   return {
-    councils: (data as any)?.getDepartmentCouncils?.data || [],
-    total: (data as any)?.getDepartmentCouncils?.total || 0,
+    councils: data?.department?.councils?.data || [],
+    total: data?.department?.councils?.total || 0,
     loading,
     error,
     refetch,
@@ -992,9 +1047,10 @@ export function useDepartmentCouncils(search?: any) {
 
 /**
  * Hook để lấy chi tiết hội đồng của khoa
+ * Updated for Backend Schema v2
  */
 export function useDepartmentCouncilDetail(id: string) {
-  const { data, loading, error, refetch } = useQuery(
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(
     GET_DEPARTMENT_COUNCIL_DETAIL,
     {
       variables: { id },
@@ -1004,7 +1060,7 @@ export function useDepartmentCouncilDetail(id: string) {
   )
 
   return {
-    council: (data as any)?.getDepartmentCouncilDetail,
+    council: data?.department?.councilDetail,
     loading,
     error,
     refetch,
@@ -1013,15 +1069,16 @@ export function useDepartmentCouncilDetail(id: string) {
 
 /**
  * Hook để lấy danh sách defences theo council
+ * Updated for Backend Schema v2
  */
 export function useDepartmentDefences(councilId: string) {
-  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_DEFENCES, {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(GET_DEPARTMENT_DEFENCES, {
     variables: { councilId },
     fetchPolicy: "cache-and-network",
     skip: !councilId,
   })
 
-  const defences = (data as any)?.getDepartmentDefences || []
+  const defences = data?.department?.defencesByCouncil || []
 
   return {
     defences,
@@ -1034,9 +1091,10 @@ export function useDepartmentDefences(councilId: string) {
 
 /**
  * Hook để lấy danh sách grade defences của khoa
+ * Updated for Backend Schema v2
  */
-export function useDepartmentGradeDefences(search?: any) {
-  const { data, loading, error, refetch } = useQuery(
+export function useDepartmentGradeDefences(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(
     GET_DEPARTMENT_GRADE_DEFENCES,
     {
       variables: { search },
@@ -1044,7 +1102,7 @@ export function useDepartmentGradeDefences(search?: any) {
     }
   )
 
-  const gradeDefences = (data as any)?.getDepartmentGradeDefences || []
+  const gradeDefences = data?.department?.gradeDefences || []
 
   return {
     gradeDefences,
@@ -1057,9 +1115,10 @@ export function useDepartmentGradeDefences(search?: any) {
 
 /**
  * Hook để lấy lịch bảo vệ của khoa (cho calendar)
+ * Updated for Backend Schema v2
  */
-export function useDepartmentDefenceSchedule(search?: any) {
-  const { data, loading, error, refetch } = useQuery(
+export function useDepartmentDefenceSchedule(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(
     GET_DEPARTMENT_DEFENCE_SCHEDULE,
     {
       variables: { search },
@@ -1068,8 +1127,8 @@ export function useDepartmentDefenceSchedule(search?: any) {
   )
 
   return {
-    councils: (data as any)?.getDepartmentCouncils?.data || [],
-    total: (data as any)?.getDepartmentCouncils?.total || 0,
+    councils: data?.department?.councils?.data || [],
+    total: data?.department?.councils?.total || 0,
     loading,
     error,
     refetch,
@@ -1078,9 +1137,10 @@ export function useDepartmentDefenceSchedule(search?: any) {
 
 /**
  * Hook để lấy danh sách semesters của khoa
+ * Updated for Backend Schema v2
  */
-export function useDepartmentSemesters(search?: any) {
-  const { data, loading, error, refetch } = useQuery(
+export function useDepartmentSemesters(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(
     GET_DEPARTMENT_SEMESTERS,
     {
       variables: { search },
@@ -1088,11 +1148,9 @@ export function useDepartmentSemesters(search?: any) {
     }
   )
 
-  const semesters = (data as any)?.getDepartmentSemesters || []
-
   return {
-    semesters,
-    total: semesters.length,
+    semesters: data?.department?.semesters?.data || [],
+    total: data?.department?.semesters?.total || 0,
     loading,
     error,
     refetch,
@@ -1101,18 +1159,20 @@ export function useDepartmentSemesters(search?: any) {
 
 /**
  * Hook để lấy danh sách majors của khoa
+ * Updated for Backend Schema v2
  */
-export function useDepartmentMajors(search?: any) {
-  const { data, loading, error, refetch } = useQuery(GET_DEPARTMENT_MAJORS, {
+export function useDepartmentMajors(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(GET_DEPARTMENT_MAJORS, {
     variables: { search },
     fetchPolicy: "cache-and-network",
   })
 
-  const majors = (data as any)?.getDepartmentMajors || []
+  const majors = data?.department?.majors?.data || []
+  const total = data?.department?.majors?.total || 0
 
   return {
     majors,
-    total: majors.length,
+    total,
     loading,
     error,
     refetch,
@@ -1121,9 +1181,10 @@ export function useDepartmentMajors(search?: any) {
 
 /**
  * Hook để lấy danh sách faculties
+ * Updated for Backend Schema v2
  */
-export function useDepartmentFaculties(search?: any) {
-  const { data, loading, error, refetch } = useQuery(
+export function useDepartmentFaculties(search?: SearchRequestInput) {
+  const { data, loading, error, refetch } = useQuery<{ department: DepartmentQuery }>(
     GET_DEPARTMENT_FACULTIES,
     {
       variables: { search },
@@ -1131,11 +1192,9 @@ export function useDepartmentFaculties(search?: any) {
     }
   )
 
-  const faculties = (data as any)?.getDepartmentFaculties || []
-
   return {
-    faculties,
-    total: faculties.length,
+    faculties: data?.department?.faculties?.data || [],
+    total: data?.department?.faculties?.total || 0,
     loading,
     error,
     refetch,

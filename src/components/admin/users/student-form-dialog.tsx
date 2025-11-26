@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client/react'
-import { CREATE_STUDENT, UPDATE_STUDENT } from '@/lib/graphql/mutations/admin.mutations'
-import { GET_ALL_MAJORS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin.queries'
+import { CREATE_STUDENT, UPDATE_STUDENT } from '@/lib/graphql/mutations/admin'
+import { GET_ALL_MAJORS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { X, AlertCircle } from 'lucide-react'
 
 interface Student {
@@ -71,8 +71,8 @@ export function StudentFormDialog({ isOpen, onClose, student, onSuccess }: Stude
     skip: !isOpen,
   })
 
-  const majors: Major[] = (majorsData as any)?.getAllMajors?.data || []
-  const semesters: Semester[] = (semestersData as any)?.getAllSemesters?.data || []
+  const majors: Major[] = (majorsData as any)?.affair?.majors?.data || []
+  const semesters: Semester[] = (semestersData as any)?.affair?.semesters?.data || []
 
   const [createStudent, { loading: createLoading }] = useMutation(CREATE_STUDENT, {
     onCompleted: () => {
@@ -178,6 +178,7 @@ export function StudentFormDialog({ isOpen, onClose, student, onSuccess }: Stude
           variables: {
             input: {
               id: formData.id,
+              mssv: formData.id,
               email: formData.email,
               phone: formData.phone,
               username: formData.username,

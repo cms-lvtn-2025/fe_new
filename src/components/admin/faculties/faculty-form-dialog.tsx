@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { CREATE_FACULTY, UPDATE_FACULTY } from '@/lib/graphql/mutations/admin.mutations'
+import { CREATE_FACULTY, UPDATE_FACULTY } from '@/lib/graphql/mutations/admin'
 import { X, AlertCircle } from 'lucide-react'
 import Modal from '@/components/common/Modal'
 
@@ -98,6 +98,7 @@ export function FacultyFormDialog({
           variables: {
             input: {
               id: formData.id,
+              ms: formData.id,
               title: formData.title,
             },
           },

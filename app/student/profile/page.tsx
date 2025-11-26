@@ -59,10 +59,10 @@ export default function StudentProfilePage() {
             </div>
             <div className="flex-1">
               <h2 className="text-2xl font-bold text-white mb-1">
-                {profile.fullname || profile.username || 'N/A'}
+                {profile.username || 'N/A'}
               </h2>
               <p className="text-blue-100 text-sm">
-                MSSV: {profile.username || profile.id}
+                MSSV: {profile.mssv || profile.username || profile.id}
               </p>
             </div>
           </div>

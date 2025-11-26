@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { REJECT_TOPIC } from '@/lib/graphql/mutations/admin.mutations'
+import { REJECT_TOPIC } from '@/lib/graphql/mutations/admin'
 import { X, XCircle } from 'lucide-react'
 
 interface Topic {

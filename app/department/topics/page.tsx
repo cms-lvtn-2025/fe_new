@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDepartmentTopics, useApproveTopicStage1, useRejectTopicStage1 } from '@/lib/graphql/hooks'
@@ -89,7 +91,7 @@ export default function DepartmentTopicsPage() {
       page: currentPage,
       pageSize,
       sortBy: 'created_at',
-      descending: true
+      descending: true,
     },
     filters: buildFilters()
   })

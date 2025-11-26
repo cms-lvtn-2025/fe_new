@@ -1,7 +1,7 @@
-import { TeacherProfile } from '@/types/teacher'
+import type { Teacher } from '@/types/graphql'
 
 interface ProfileCardProps {
-  profile: Partial<TeacherProfile> | null
+  profile: Teacher | null | undefined
 }
 
 export function ProfileCard({ profile }: ProfileCardProps) {

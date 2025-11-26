@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation } from '@apollo/client/react'
-import { APPROVE_TOPIC } from '@/lib/graphql/mutations/admin.mutations'
+import { APPROVE_TOPIC } from '@/lib/graphql/mutations/admin'
 import { X, CheckCircle } from 'lucide-react'
 import { useState } from 'react'
 

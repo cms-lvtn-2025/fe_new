@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { UPDATE_SEMESTER } from '@/lib/graphql/mutations/admin.mutations'
+import { UPDATE_SEMESTER } from '@/lib/graphql/mutations/admin'
 import { X } from 'lucide-react'
 
 interface Semester {

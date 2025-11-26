@@ -88,7 +88,7 @@ export default function TeacherDefencesPage() {
       page: currentPage,
       pageSize,
       sortBy: 'created_at',
-      descending: false // Ascending for upcoming events
+      descending: false, // Ascending for upcoming events
     },
     filters: buildFilters()
   })

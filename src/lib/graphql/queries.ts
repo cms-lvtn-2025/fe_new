@@ -5,13 +5,16 @@
  * Please import from the new modular structure instead:
  *
  * For Student queries:
- * import { GET_MY_PROFILE, GET_MY_ENROLLMENTS } from '@/lib/graphql/queries/student.queries'
+ * import { GET_MY_PROFILE, GET_MY_ENROLLMENTS } from '@/lib/graphql/queries/student'
  *
  * For Teacher queries:
- * import { GET_MY_TEACHER_PROFILE, GET_MY_DEFENCES } from '@/lib/graphql/queries/teacher.queries'
+ * import { GET_MY_TEACHER_PROFILE, GET_MY_DEFENCES } from '@/lib/graphql/queries/teacher'
  *
  * For Admin queries:
- * import { GET_LIST_STUDENTS, GET_ALL_TOPICS } from '@/lib/graphql/queries/admin.queries'
+ * import { GET_LIST_STUDENTS, GET_ALL_TOPICS } from '@/lib/graphql/queries/admin'
+ *
+ * For Department queries:
+ * import { GET_DEPARTMENT_TOPICS } from '@/lib/graphql/queries/department'
  *
  * Or import all from the index:
  * import { GET_MY_PROFILE, GET_MY_TEACHER_PROFILE } from '@/lib/graphql/queries'

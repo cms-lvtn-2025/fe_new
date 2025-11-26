@@ -44,13 +44,13 @@ export default function AnalyticsPage() {
   const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 100 , sortBy: 'created_at', descending: true },
         filters: [],
       },
     },
   })
 
-  const semesters = (semestersData as any)?.getAllSemesters?.data || []
+  const semesters = (semestersData as any)?.affair?.semesters?.data || []
 
   // Set default selected semester to current semester
   useEffect(() => {
@@ -78,7 +78,7 @@ export default function AnalyticsPage() {
   const { data: topicsData, loading: topicsLoading } = useQuery(GET_ALL_TOPICS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 10000, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 10000 , sortBy: 'created_at', descending: true },
         filters: semesterFilters,
       },
     },
@@ -88,7 +88,7 @@ export default function AnalyticsPage() {
   const { data: councilsData, loading: councilsLoading } = useQuery(GET_ALL_COUNCILS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 10000, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 10000 , sortBy: 'created_at', descending: true },
         filters: semesterFilters,
       },
     },
@@ -98,7 +98,7 @@ export default function AnalyticsPage() {
   const { data: studentsData, loading: studentsLoading } = useQuery(GET_LIST_STUDENTS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 10000, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 10000 , sortBy: 'created_at', descending: true },
         filters: semesterFilters,
       },
     },
@@ -108,7 +108,7 @@ export default function AnalyticsPage() {
   const { data: teachersData, loading: teachersLoading } = useQuery(GET_LIST_TEACHERS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 10000, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 10000 , sortBy: 'created_at', descending: true },
         filters: semesterFilters,
       },
     },
@@ -117,10 +117,10 @@ export default function AnalyticsPage() {
 
   // Calculate statistics
   const stats = useMemo(() => {
-    const topics: Topic[] = (topicsData as any)?.getAllTopics?.data || []
-    const councils: Council[] = (councilsData as any)?.getAllCouncils?.data || []
-    const students = (studentsData as any)?.getListStudents?.data || []
-    const teachers = (teachersData as any)?.getListTeachers?.data || []
+    const topics: Topic[] = (topicsData as any)?.affair?.topics?.data || []
+    const councils: Council[] = (councilsData as any)?.affair?.councils?.data || []
+    const students = (studentsData as any)?.affair?.students?.data || []
+    const teachers = (teachersData as any)?.affair?.teachers?.data || []
 
     // Topic statistics
     const totalTopics = topics.length

@@ -1,7 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useQuery } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_MY_ENROLLMENT_DETAIL } from '@/lib/graphql/queries/student'
 import { useUploadMidtermFile, useUploadFinalFile } from '@/lib/graphql/hooks'
 import {
   ArrowLeft,
@@ -32,23 +35,20 @@ const STAGE_LABELS: Record<string, string> = {
 
 export default function ThesisDetailPage({ params }: { params: { id: string } }) {
   const router = useRouter()
-  const [enrollment, setEnrollment] = useState<any>(null)
+  const enrollmentId = params.id
   const [midtermFileInput, setMidtermFileInput] = useState<File | null>(null)
   const [finalFileInput, setFinalFileInput] = useState<File | null>(null)
+
+  const { data, loading, error, refetch } = useQuery(GET_MY_ENROLLMENT_DETAIL, {
+    variables: { search: createDetailSearch(enrollmentId) },
+    skip: !enrollmentId,
+  })
 
   const { uploadFile: uploadMidtermFile, loading: uploadingMidterm } = useUploadMidtermFile()
   const { uploadFile: uploadFinalFile, loading: uploadingFinal } = useUploadFinalFile()
 
-  useEffect(() => {
-    const data = sessionStorage.getItem('enrollmentDetailData')
-    if (data) {
-      setEnrollment(JSON.parse(data))
-    }
-  }, [])
-
   const handleBack = () => {
-    const backUrl = enrollment?.backUrl || '/student/thesis'
-    router.push(backUrl)
+    router.push('/student/thesis')
   }
 
   const handleUploadMidterm = async () => {
@@ -66,14 +66,8 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
       })
       alert('Đã tải lên file giữa kỳ thành công!')
       setMidtermFileInput(null)
-      // Refresh enrollment data
-      const data = sessionStorage.getItem('enrollmentDetailData')
-      if (data) {
-        const updated = JSON.parse(data)
-        updated.midtermFile = URL.createObjectURL(midtermFileInput)
-        setEnrollment(updated)
-        sessionStorage.setItem('enrollmentDetailData', JSON.stringify(updated))
-      }
+      // Refetch to get updated data
+      refetch()
     } catch (error) {
       alert('Lỗi khi tải lên file: ' + (error as Error).message)
     }
@@ -94,23 +88,50 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
       })
       alert('Đã tải lên file cuối kỳ thành công!')
       setFinalFileInput(null)
-      // Refresh enrollment data
-      const data = sessionStorage.getItem('enrollmentDetailData')
-      if (data) {
-        const updated = JSON.parse(data)
-        updated.finalFile = URL.createObjectURL(finalFileInput)
-        setEnrollment(updated)
-        sessionStorage.setItem('enrollmentDetailData', JSON.stringify(updated))
-      }
+      // Refetch to get updated data
+      refetch()
     } catch (error) {
       alert('Lỗi khi tải lên file: ' + (error as Error).message)
     }
   }
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 dark:text-red-400 mb-4">Lỗi: {error.message}</p>
+        <button
+          onClick={() => router.push('/student/thesis')}
+          className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          Quay lại danh sách
+        </button>
+      </div>
+    )
+  }
+
+  const enrollment = (data as any)?.student?.enrollments?.data?.[0]
+
   if (!enrollment) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        <p className="text-red-600 dark:text-red-400">Không tìm thấy thông tin luận văn {enrollmentId}</p>
+        <button
+          onClick={() => router.push('/student/thesis')}
+          className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          Quay lại danh sách
+        </button>
       </div>
     )
   }

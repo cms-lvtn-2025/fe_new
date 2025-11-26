@@ -1,7 +1,9 @@
 'use client'
 
-import { useEffect, useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useQuery } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_TOPIC_COUNCIL_DETAIL } from '@/lib/graphql/queries/teacher'
 import {
   ArrowLeft,
   FileText,
@@ -36,20 +38,15 @@ const STAGE_LABELS: Record<string, string> = {
 export default function TeacherTopicDetailPage() {
   const router = useRouter()
   const params = useParams()
-  const [topicCouncilData, setTopicCouncilData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const topicCouncilId = params.id as string
 
-  useEffect(() => {
-    const data = sessionStorage.getItem('topicCouncilDetailData')
-    if (data) {
-      setTopicCouncilData(JSON.parse(data))
-    }
-    setLoading(false)
-  }, [])
+  const { data, loading, error } = useQuery(GET_TOPIC_COUNCIL_DETAIL, {
+    variables: { search: createDetailSearch(topicCouncilId) },
+    skip: !topicCouncilId,
+  })
 
   const handleBack = () => {
-    const backUrl = topicCouncilData?.backUrl || '/teacher/topics'
-    router.push(backUrl)
+    router.push('/teacher/topics')
   }
 
   const handleImportExcel = () => {
@@ -57,7 +54,7 @@ export default function TeacherTopicDetailPage() {
   }
 
   const handleExportExcel = () => {
-    const topic = topicCouncilData?.topicCouncil?.topic
+    const topic = topicCouncilData?.topic
     alert(`Export điểm đề tài "${topic?.title}" sẽ được triển khai sau khi backend hoàn thiện`)
   }
 
@@ -67,19 +64,35 @@ export default function TeacherTopicDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600 dark:text-gray-400">Đang tải...</div>
+      <div className="flex items-center justify-center h-full min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
       </div>
     )
   }
+
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
+        <button onClick={() => router.push('/teacher/topics')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
+      </div>
+    )
+  }
+
+  const topicCouncilData = (data as any)?.teacher?.supervisor?.topicCouncils?.data?.[0]
 
   if (!topicCouncilData) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400">Không tìm thấy thông tin đề tài</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">TopicCouncil với ID {topicCouncilId} không tồn tại</p>
         <button
           onClick={() => router.push('/teacher/topics')}
-          className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+          className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
         >
           Quay lại danh sách
         </button>
@@ -87,10 +100,9 @@ export default function TeacherTopicDetailPage() {
     )
   }
 
-  const topic = topicCouncilData.topicCouncil?.topic
-  const topicCouncil = topicCouncilData.topicCouncil
-  const enrollments = topicCouncil?.enrollments || []
-  const supervisors = topicCouncil?.supervisors || []
+  const topic = topicCouncilData.topic
+  const enrollments = topicCouncilData.enrollments || []
+  const supervisors = topicCouncilData.supervisors || []
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -173,24 +185,24 @@ export default function TeacherTopicDetailPage() {
                 <label className="text-sm text-gray-500 dark:text-gray-400">Giai đoạn</label>
                 <div className="mt-1">
                   <span className="px-3 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-sm rounded">
-                    {STAGE_LABELS[topicCouncil?.stage] || topicCouncil?.stage || 'N/A'}
+                    {STAGE_LABELS[topicCouncilData.stage] || topicCouncilData.stage || 'N/A'}
                   </span>
                 </div>
               </div>
               <div>
                 <label className="text-sm text-gray-500 dark:text-gray-400">Mã hội đồng</label>
                 <p className="mt-1 text-gray-900 dark:text-gray-100 font-mono">
-                  {topicCouncil?.councilCode || 'N/A'}
+                  {topicCouncilData.councilCode || 'N/A'}
                 </p>
               </div>
               <div>
                 <label className="text-sm text-gray-500 dark:text-gray-400">Thời gian bắt đầu</label>
                 <div className="mt-1 flex items-center gap-2 text-gray-900 dark:text-gray-100">
                   <Clock className="w-4 h-4 text-gray-400" />
-                  {topicCouncil?.timeStart ? (
+                  {topicCouncilData.timeStart ? (
                     <div>
-                      {new Date(topicCouncil.timeStart).toLocaleDateString('vi-VN')}{' '}
-                      {new Date(topicCouncil.timeStart).toLocaleTimeString('vi-VN', {
+                      {new Date(topicCouncilData.timeStart).toLocaleDateString('vi-VN')}{' '}
+                      {new Date(topicCouncilData.timeStart).toLocaleTimeString('vi-VN', {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}
@@ -204,10 +216,10 @@ export default function TeacherTopicDetailPage() {
                 <label className="text-sm text-gray-500 dark:text-gray-400">Thời gian kết thúc</label>
                 <div className="mt-1 flex items-center gap-2 text-gray-900 dark:text-gray-100">
                   <Clock className="w-4 h-4 text-gray-400" />
-                  {topicCouncil?.timeEnd ? (
+                  {topicCouncilData.timeEnd ? (
                     <div>
-                      {new Date(topicCouncil.timeEnd).toLocaleDateString('vi-VN')}{' '}
-                      {new Date(topicCouncil.timeEnd).toLocaleTimeString('vi-VN', {
+                      {new Date(topicCouncilData.timeEnd).toLocaleDateString('vi-VN')}{' '}
+                      {new Date(topicCouncilData.timeEnd).toLocaleTimeString('vi-VN', {
                         hour: '2-digit',
                         minute: '2-digit'
                       })}

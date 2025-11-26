@@ -55,10 +55,8 @@ export default function DepartmentTeachersPage() {
   const { teachers, total, loading, error, refetch } = useDepartmentTeachers({
     pagination: {
       page: currentPage,
-      pageSize,
-      sortBy: 'created_at',
-      descending: true
-    },
+      pageSize
+    , sortBy: 'created_at', descending: true },
     filters: buildFilters()
   })
 

@@ -1,17 +1,24 @@
 import { gql } from "@apollo/client"
 
 /**
+ * Admin (Affair) - Academic Queries
+ * Updated for Backend Schema v2 - Namespace-based approach
+ */
+
+/**
  * Query để lấy danh sách semesters
  */
 export const GET_ALL_SEMESTERS = gql`
   query GetAllSemesters($search: SearchRequestInput!) {
-    getAllSemesters(search: $search) {
-      total
-      data {
-        id
-        title
-        createdAt
-        updatedAt
+    affair {
+      semesters(search: $search) {
+        total
+        data {
+          id
+          title
+          createdAt
+          updatedAt
+        }
       }
     }
   }
@@ -22,14 +29,17 @@ export const GET_ALL_SEMESTERS = gql`
  */
 export const GET_ALL_MAJORS = gql`
   query GetAllMajors($search: SearchRequestInput!) {
-    getAllMajors(search: $search) {
-      total
-      data {
-        id
-        title
-        facultyCode
-        createdAt
-        updatedAt
+    affair {
+      majors(search: $search) {
+        total
+        data {
+          id
+          ms
+          title
+          facultyCode
+          createdAt
+          updatedAt
+        }
       }
     }
   }
@@ -40,17 +50,21 @@ export const GET_ALL_MAJORS = gql`
  */
 export const GET_ALL_FACULTIES = gql`
   query GetAllFaculties($search: SearchRequestInput!) {
-    getAllFaculties(search: $search) {
-      total
-      data {
-        id
-        title
-        createdAt
-        updatedAt
-        majors {
+    affair {
+      faculties(search: $search) {
+        total
+        data {
           id
+          ms
           title
-          facultyCode
+          createdAt
+          updatedAt
+          majors {
+            id
+            ms
+            title
+            facultyCode
+          }
         }
       }
     }

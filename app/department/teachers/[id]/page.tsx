@@ -1,7 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useQuery } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_DEPARTMENT_TEACHER_DETAIL } from '@/lib/graphql/queries/department'
 import { ArrowLeft, Mail, User, BookOpen, Calendar, Shield } from 'lucide-react'
 
 interface TeacherDetail {
@@ -43,16 +46,37 @@ const ROLE_COLORS: Record<string, string> = {
 export default function TeacherDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [teacher, setTeacher] = useState<TeacherDetail | null>(null)
+  const teacherId = params.id as string
 
-  useEffect(() => {
-    // Lấy data từ sessionStorage
-    const storedData = sessionStorage.getItem('teacherDetailData')
-    if (storedData) {
-      const data = JSON.parse(storedData)
-      setTeacher(data)
-    }
-  }, [])
+  const { data, loading, error } = useQuery(GET_DEPARTMENT_TEACHER_DETAIL, {
+    variables: { search: createDetailSearch(teacherId) },
+    skip: !teacherId,
+  })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
+          <button onClick={() => router.push('/department/teachers')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
+        </div>
+      </div>
+    )
+  }
+
+  const teacher = (data as any)?.department?.teachers?.data?.[0]
 
   if (!teacher) {
     return (
@@ -62,7 +86,7 @@ export default function TeacherDetailPage() {
             Không tìm thấy thông tin giảng viên
           </p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Vui lòng quay lại và chọn giảng viên để xem chi tiết
+            Giảng viên với ID {teacherId} không tồn tại
           </p>
           <button
             onClick={() => router.push('/department/teachers')}
@@ -81,7 +105,7 @@ export default function TeacherDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push(teacher.backUrl || '/department/teachers')}
+            onClick={() => router.push('/department/teachers')}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -149,7 +173,7 @@ export default function TeacherDetailPage() {
               Vai trò
             </h2>
             <div className="space-y-3">
-              {teacher.roles.map((role) => (
+              {teacher.roles.map((role: any) => (
                 <div
                   key={role.id}
                   className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-750 rounded-lg border border-gray-200 dark:border-gray-700"

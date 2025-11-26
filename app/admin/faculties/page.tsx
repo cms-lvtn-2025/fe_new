@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { GET_ALL_FACULTIES } from '@/lib/graphql/queries/admin'
-import { DELETE_FACULTY } from '@/lib/graphql/mutations/admin.mutations'
+import { DELETE_FACULTY } from '@/lib/graphql/mutations/admin'
 import { Plus, Edit, Trash2, RefreshCw, Search, ChevronDown, ChevronRight } from 'lucide-react'
 import Loading from '@/components/common/Loading'
 import { FacultyFormDialog } from '@/components/admin/faculties/faculty-form-dialog'
@@ -75,10 +75,8 @@ export default function FacultiesManagementPage() {
       search: {
         pagination: {
           page: currentPage,
-          pageSize: pageSize,
-          sortBy: 'created_at',
-          descending: true,
-        },
+          pageSize: pageSize
+        , sortBy: 'created_at', descending: true },
         filters: buildFilters(),
       },
     },

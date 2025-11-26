@@ -2,7 +2,9 @@
 
 import React, { createContext, useContext, useEffect, useState } from 'react'
 import { apolloClient } from '@/lib/graphql/client'
-import { GET_MY_SEMESTERS } from '@/lib/graphql/queries/student.queries'
+import { GET_MY_SEMESTERS } from '@/lib/graphql/queries/student'
+import { GET_MY_TEACHER_PROFILE } from '@/lib/graphql/queries/teacher'
+import { saveCurrentSemester, saveUserRoles } from '@/lib/api/auth'
 
 interface Semester {
   id: string
@@ -67,8 +69,8 @@ export function SemesterProvider({ children }: { children: React.ReactNode }) {
         fetchPolicy: 'network-only',
       })
 
-      if ((semestersResult.data as any)?.getMySemesters?.data) {
-        const sems = (semestersResult.data as any).getMySemesters.data.map((s: any) => ({
+      if ((semestersResult.data as any)?.student?.semesters?.data) {
+        const sems = (semestersResult.data as any).student.semesters.data.map((s: any) => ({
           id: s.id,
           code: s.id,
           name: s.title,
@@ -115,7 +117,40 @@ export function SemesterProvider({ children }: { children: React.ReactNode }) {
     const semester = semesters.find((s) => s.id === semesterId)
     if (semester) {
       setCurrentSemesterState(semester)
+
+      // IMPORTANT: Set semester in localStorage FIRST so Apollo client can use it in header
       localStorage.setItem('currentSemesterId', semesterId)
+
+      // Refetch user profile to get roles for the new semester
+      const userRole = localStorage.getItem('userRole')
+      if (userRole === 'teacher' || userRole === 'department' || userRole === 'admin') {
+        try {
+          console.log('[SemesterContext] Refetching profile for new semester:', semesterId)
+
+          const profileResult = await apolloClient.query({
+            query: GET_MY_TEACHER_PROFILE,
+            fetchPolicy: 'network-only',
+          })
+
+          console.log('[SemesterContext] Profile result:', profileResult.data)
+
+          if ((profileResult.data as any)?.teacher?.me?.roles) {
+            const roles = (profileResult.data as any).teacher.me.roles
+            console.log('[SemesterContext] Updated roles:', roles)
+
+            // Update roles in localStorage
+            saveUserRoles(roles)
+
+            // Update active roles cookie for the new semester
+            saveCurrentSemester(semesterId)
+          }
+        } catch (error) {
+          console.error('[SemesterContext] Error refetching profile:', error)
+        }
+      } else {
+        // For student/other roles, just save semester (no need to refetch)
+        saveCurrentSemester(semesterId)
+      }
 
       // Reload page data when semester changes
       window.location.reload()

@@ -61,7 +61,7 @@ export default function StudentThesisPage() {
       page: currentPage,
       pageSize,
       sortBy: 'created_at',
-      descending: true
+      descending: true,
     },
     filters: buildFilters()
   })

@@ -2,9 +2,15 @@
 
 import React, { useState, useEffect } from 'react'
 import { useMutation, useQuery } from '@apollo/client/react'
-import { CREATE_TEACHER, UPDATE_TEACHER } from '@/lib/graphql/mutations/admin.mutations'
-import { GET_ALL_MAJORS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin.queries'
+import { CREATE_TEACHER, UPDATE_TEACHER } from '@/lib/graphql/mutations/admin'
+import { GET_ALL_MAJORS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { X, AlertCircle } from 'lucide-react'
+
+interface TeacherRole {
+  id: string
+  role: string
+  activate: boolean
+}
 
 interface Teacher {
   id: string
@@ -13,6 +19,7 @@ interface Teacher {
   gender: string
   majorCode: string
   semesterCode: string
+  roles?: TeacherRole[]
 }
 
 interface Major {
@@ -40,6 +47,7 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
     gender: 'MALE' as 'MALE' | 'FEMALE' | 'OTHER',
     majorCode: '',
     semesterCode: '',
+    roles: [] as string[],
   })
   const [error, setError] = useState('')
 
@@ -67,8 +75,8 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
     skip: !isOpen,
   })
 
-  const majors: Major[] = (majorsData as any)?.getAllMajors?.data || []
-  const semesters: Semester[] = (semestersData as any)?.getAllSemesters?.data || []
+  const majors: Major[] = (majorsData as any)?.affair?.majors?.data || []
+  const semesters: Semester[] = (semestersData as any)?.affair?.semesters?.data || []
 
   const [createTeacher, { loading: createLoading }] = useMutation(CREATE_TEACHER, {
     onCompleted: () => {
@@ -100,6 +108,7 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
           gender: teacher.gender as 'MALE' | 'FEMALE' | 'OTHER',
           majorCode: teacher.majorCode,
           semesterCode: teacher.semesterCode,
+          roles: teacher.roles?.map(r => r.role) || [],
         })
       } else {
         setFormData({
@@ -109,6 +118,7 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
           gender: 'MALE',
           majorCode: '',
           semesterCode: '',
+          roles: [],
         })
       }
       setError('')
@@ -144,6 +154,11 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
       return
     }
 
+    if (formData.roles.length === 0) {
+      setError('Vui lòng chọn ít nhất một vai trò')
+      return
+    }
+
     try {
       if (isEdit) {
         await updateTeacher({
@@ -155,6 +170,7 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
               gender: formData.gender,
               majorCode: formData.majorCode,
               semesterCode: formData.semesterCode,
+              roles: formData.roles,
             },
           },
         })
@@ -163,11 +179,13 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
           variables: {
             input: {
               id: formData.id,
+              msgv: formData.id,
               email: formData.email,
               username: formData.username,
               gender: formData.gender,
               majorCode: formData.majorCode,
               semesterCode: formData.semesterCode,
+              roles: formData.roles,
             },
           },
         })
@@ -185,6 +203,7 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
       gender: 'MALE',
       majorCode: '',
       semesterCode: '',
+      roles: [],
     })
     setError('')
     onClose()
@@ -318,6 +337,37 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
               ))}
             </select>
           </div>
+
+          {/* Roles */}
+          <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Vai trò <span className="text-red-500">*</span>
+              </label>
+              <div className="space-y-2">
+                {[
+                  { value: 'TEACHER', label: 'Giảng viên' },
+                  { value: 'DEPARTMENT_LECTURER', label: 'Giảng viên khoa' },
+                  { value: 'ACADEMIC_AFFAIRS_STAFF', label: 'Nhân viên đào tạo' },
+                ].map((role) => (
+                  <label key={role.value} className="flex items-center gap-2 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={formData.roles.includes(role.value)}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setFormData({ ...formData, roles: [...formData.roles, role.value] })
+                        } else {
+                          setFormData({ ...formData, roles: formData.roles.filter(r => r !== role.value) })
+                        }
+                      }}
+                      disabled={loading}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <span className="text-sm text-gray-700 dark:text-gray-300">{role.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
 
           {/* Error Message */}
           {error && (

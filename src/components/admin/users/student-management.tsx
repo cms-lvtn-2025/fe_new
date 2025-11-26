@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@apollo/client/react'
-import { GET_LIST_STUDENTS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin.queries'
+import { GET_LIST_STUDENTS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { Plus, Pencil, Trash2, Search, RefreshCw, Upload, Download, Filter, Eye } from 'lucide-react'
 import { StudentFormDialog } from './student-form-dialog'
 import { DeleteStudentDialog } from './delete-student-dialog'
@@ -48,10 +48,10 @@ export function StudentManagement() {
   })
 
   const semesters = useMemo(() => {
-    return (semestersData as any)?.getAllSemesters?.data || []
+    return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
 
-  // Build filters for backend
+  // Build filters for backend - Updated for Backend Schema v2
   const buildFilters = () => {
     const filters: any[] = []
 
@@ -59,42 +59,46 @@ export function StudentManagement() {
     if (selectedSemester !== 'all') {
       filters.push({
         condition: {
-          field: 'semester_code',
+          field: 'semesterCode',
           operator: 'EQUAL',
           values: [selectedSemester],
         },
       })
     }
 
-    // Search filter - tìm trong nhiều fields
+    // Search filter - với Backend Schema v2, search trong username
+    // Note: OR logic cần được xử lý ở backend, ở đây ta search username
     if (searchTerm.trim()) {
       filters.push({
         group: {
           logic: 'OR',
-          filters: [
-            {
-              condition: {
-                field: 'username',
-                operator: 'LIKE',
-                values: [searchTerm.trim()],
-              },
+          filters: [{
+            condition: {
+              field: 'email',
+              operator: 'LIKE',
+              values: [searchTerm.trim()],
             },
-            {
-              condition: {
-                field: 'email',
-                operator: 'LIKE',
-                values: [searchTerm.trim()],
-              },
+          }, {
+            condition: {
+              field: 'id',
+              operator: 'LIKE',
+              values: [searchTerm.trim()],
             },
-            {
-              condition: {
-                field: 'id',
-                operator: 'LIKE',
-                values: [searchTerm.trim()],
-              },
+          },{
+            condition: {
+              field: 'username',
+              operator: 'LIKE',
+              values: [searchTerm.trim()],
             },
-          ],
-        },
+          }, {
+            condition: {
+              field: 'id',
+              operator: 'LIKE',
+              values: [searchTerm.trim()],
+            },
+          }
+        ]
+        }
       })
     }
 
@@ -131,7 +135,7 @@ export function StudentManagement() {
           page: currentPage,
           pageSize: pageSize,
           sortBy: 'created_at',
-          descending: true
+          descending: true,
         },
         filters: buildFilters(),
       },
@@ -139,8 +143,8 @@ export function StudentManagement() {
     fetchPolicy: 'network-only',
   })
 
-  const students: Student[] = (data as any)?.getListStudents?.data || []
-  const total: number = (data as any)?.getListStudents?.total || 0
+  const students: Student[] = (data as any)?.affair?.students?.data || []
+  const total: number = (data as any)?.affair?.students?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
   // Fetch all students for filter options (without pagination)
@@ -151,7 +155,7 @@ export function StudentManagement() {
           page: 1,
           pageSize: 1000,
           sortBy: 'created_at',
-          descending: true
+          descending: true,
         },
         filters: [],
       },
@@ -159,7 +163,7 @@ export function StudentManagement() {
     fetchPolicy: 'cache-first',
   })
 
-  const allStudents: Student[] = (allData as any)?.getListStudents?.data || []
+  const allStudents: Student[] = (allData as any)?.affair?.students?.data || []
 
   // Get unique classes and majors for filters
   const classes = Array.from(new Set(allStudents.map(s => s.classCode))).filter(Boolean)
@@ -222,110 +226,110 @@ export function StudentManagement() {
 
   return (
     <div className="space-y-4">
-      {/* Actions Bar */}
-      <div className="flex flex-col lg:flex-row gap-4">
-        {/* Search */}
-        <div className="relative flex-1 flex gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Tìm kiếm sinh viên..."
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              onKeyDown={handleSearchKeyDown}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            />
-          </div>
-          <button
-            onClick={handleSearchSubmit}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+      {/* Search Bar */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Tìm kiếm sinh viên theo tên, email, MSSV..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            onKeyDown={handleSearchKeyDown}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
+        </div>
+        <button
+          onClick={handleSearchSubmit}
+          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+        >
+          Tìm kiếm
+        </button>
+      </div>
+
+      {/* Filters & Actions Bar */}
+      <div className="flex flex-wrap items-center gap-2">
+        {/* Semester Filter */}
+        <div className="relative">
+          <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+          <select
+            value={selectedSemester}
+            onChange={(e) => setSelectedSemester(e.target.value)}
+            className="pl-9 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
           >
-            Tìm kiếm
-          </button>
+            <option value="all">Tất cả học kỳ</option>
+            {semesters.map((semester: any) => (
+              <option key={semester.id} value={semester.id}>{semester.title}</option>
+            ))}
+          </select>
         </div>
 
-        {/* Filters */}
-        <div className="flex flex-wrap gap-2">
-          {/* Semester Filter */}
-          <div className="relative">
-            <Filter className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <select
-              value={selectedSemester}
-              onChange={(e) => setSelectedSemester(e.target.value)}
-              className="pl-9 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
-            >
-              <option value="all">Tất cả học kỳ</option>
-              {semesters.map((semester: any) => (
-                <option key={semester.id} value={semester.id}>{semester.title}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Class Filter */}
-          <div className="relative">
-            <select
-              value={selectedClass}
-              onChange={(e) => handleClassChange(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
-            >
-              <option value="all">Tất cả lớp</option>
-              {classes.map(cls => (
-                <option key={cls} value={cls}>{cls}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Major Filter */}
-          <div className="relative">
-            <select
-              value={selectedMajor}
-              onChange={(e) => handleMajorChange(e.target.value)}
-              className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
-            >
-              <option value="all">Tất cả khoa</option>
-              {majors.map(major => (
-                <option key={major} value={major}>{major}</option>
-              ))}
-            </select>
-          </div>
-
-          {/* Refresh Button */}
-          <button
-            onClick={handleRefresh}
-            className="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-            title="Làm mới"
+        {/* Class Filter */}
+        <div className="relative">
+          <select
+            value={selectedClass}
+            onChange={(e) => handleClassChange(e.target.value)}
+            className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
           >
-            <RefreshCw className="w-5 h-5" />
-          </button>
-
-          {/* Import Button */}
-          <button
-            onClick={handleImport}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Upload className="w-5 h-5" />
-            Import
-          </button>
-
-          {/* Export Button */}
-          <button
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-          >
-            <Download className="w-5 h-5" />
-            Export
-          </button>
-
-          {/* Create Button */}
-          <button
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-          >
-            <Plus className="w-5 h-5" />
-            Thêm sinh viên
-          </button>
+            <option value="all">Tất cả lớp</option>
+            {classes.map(cls => (
+              <option key={cls} value={cls}>{cls}</option>
+            ))}
+          </select>
         </div>
+
+        {/* Major Filter */}
+        <div className="relative">
+          <select
+            value={selectedMajor}
+            onChange={(e) => handleMajorChange(e.target.value)}
+            className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
+          >
+            <option value="all">Tất cả khoa</option>
+            {majors.map(major => (
+              <option key={major} value={major}>{major}</option>
+            ))}
+          </select>
+        </div>
+
+        {/* Refresh Button */}
+        <button
+          onClick={handleRefresh}
+          className="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          title="Làm mới"
+        >
+          <RefreshCw className="w-5 h-5" />
+        </button>
+
+        {/* Spacer */}
+        <div className="flex-1" />
+
+        {/* Import Button */}
+        <button
+          onClick={handleImport}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          <Upload className="w-5 h-5" />
+          <span className="hidden sm:inline">Import</span>
+        </button>
+
+        {/* Export Button */}
+        <button
+          onClick={handleExport}
+          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+        >
+          <Download className="w-5 h-5" />
+          <span className="hidden sm:inline">Export</span>
+        </button>
+
+        {/* Create Button */}
+        <button
+          onClick={() => setIsCreateDialogOpen(true)}
+          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+        >
+          <Plus className="w-5 h-5" />
+          <span className="hidden sm:inline">Thêm sinh viên</span>
+        </button>
       </div>
 
       {/* Students Table */}

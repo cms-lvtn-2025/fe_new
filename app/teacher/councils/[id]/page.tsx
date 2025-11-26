@@ -1,7 +1,10 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import { useQuery } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_DEFENCE_DETAIL } from '@/lib/graphql/queries/teacher'
 import {
   ArrowLeft,
   Users,
@@ -15,6 +18,7 @@ import {
   Edit,
   CheckCircle
 } from 'lucide-react'
+import { GradeDefenceDialog } from '@/components/teacher/grade-defence-dialog'
 
 const POSITION_LABELS: Record<string, string> = {
   PRESIDENT: 'Chủ tịch',
@@ -33,20 +37,17 @@ const POSITION_COLORS: Record<string, string> = {
 export default function TeacherCouncilDetailPage() {
   const router = useRouter()
   const params = useParams()
-  const [defenceData, setDefenceData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
+  const defenceId = params.id as string
+  const [isGradeDialogOpen, setIsGradeDialogOpen] = useState(false)
+  const [selectedGradeDefence, setSelectedGradeDefence] = useState<any>(null)
 
-  useEffect(() => {
-    const data = sessionStorage.getItem('defenceDetailData')
-    if (data) {
-      setDefenceData(JSON.parse(data))
-    }
-    setLoading(false)
-  }, [])
+  const { data, loading, error, refetch } = useQuery(GET_DEFENCE_DETAIL, {
+    variables: { search: createDetailSearch(defenceId) },
+    skip: !defenceId,
+  })
 
   const handleBack = () => {
-    const backUrl = defenceData?.backUrl || '/teacher/councils'
-    router.push(backUrl)
+    router.push('/teacher/councils')
   }
 
   const handleImportExcel = () => {
@@ -54,26 +55,52 @@ export default function TeacherCouncilDetailPage() {
   }
 
   const handleExportExcel = () => {
+    const defenceData = (data as any)?.teacher?.council?.defences?.data?.[0]
     const council = defenceData?.council
     alert(`Export điểm hội đồng "${council?.title}" sẽ được triển khai sau khi backend hoàn thiện`)
   }
 
   const handleGradeStudent = (gradeDefence: any) => {
-    alert(`Chấm điểm cho sinh viên sẽ được triển khai sau. Grade Defence ID: ${gradeDefence.id}`)
+    setSelectedGradeDefence(gradeDefence)
+    setIsGradeDialogOpen(true)
+  }
+
+  const handleGradeSuccess = () => {
+    // Refetch data after successful grade submission
+    refetch()
   }
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-gray-600 dark:text-gray-400">Đang tải...</div>
+      <div className="flex items-center justify-center h-full min-h-[300px]">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
       </div>
     )
   }
 
+  if (error) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-red-600 dark:text-red-400 mb-4">Lỗi: {error.message}</p>
+        <button
+          onClick={() => router.push('/teacher/councils')}
+          className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+        >
+          Quay lại danh sách
+        </button>
+      </div>
+    )
+  }
+
+  const defenceData = (data as any)?.teacher?.council?.defences?.data?.[0]
+
   if (!defenceData) {
     return (
       <div className="text-center py-12">
-        <p className="text-red-600 dark:text-red-400">Không tìm thấy thông tin hội đồng</p>
+        <p className="text-red-600 dark:text-red-400">Không tìm thấy thông tin hội đồng {defenceId}</p>
         <button
           onClick={() => router.push('/teacher/councils')}
           className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
@@ -368,6 +395,15 @@ export default function TeacherCouncilDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Grade Defence Dialog */}
+      <GradeDefenceDialog
+        isOpen={isGradeDialogOpen}
+        onClose={() => setIsGradeDialogOpen(false)}
+        gradeDefence={selectedGradeDefence}
+        defenceId={defenceData?.id || ''}
+        onSuccess={handleGradeSuccess}
+      />
     </div>
   )
 }

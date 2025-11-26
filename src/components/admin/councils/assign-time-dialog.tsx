@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { UPDATE_COUNCIL } from '@/lib/graphql/mutations/admin.mutations'
+import { UPDATE_COUNCIL } from '@/lib/graphql/mutations/admin'
 import { X, Clock, AlertCircle } from 'lucide-react'
 import Modal from '@/components/common/Modal'
 import { format } from 'date-fns'

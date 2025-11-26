@@ -86,14 +86,14 @@ export default function TopicsManagementPage() {
   const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 100 , sortBy: 'created_at', descending: true },
         filters: [],
       },
     },
   })
 
   const semesters = useMemo(() => {
-    return (semestersData as any)?.getAllSemesters?.data || []
+    return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
 
   // Build filters for backend
@@ -168,20 +168,15 @@ export default function TopicsManagementPage() {
   const { data, loading, refetch } = useQuery(GET_ALL_TOPICS, {
     variables: {
       search: {
-        pagination: {
-          page: currentPage,
-          pageSize: pageSize,
-          sortBy: 'created_at',
-          descending: true
-        },
+        pagination: { page: currentPage, pageSize: pageSize , sortBy: 'created_at', descending: true },
         filters: buildFilters(),
       },
     },
     fetchPolicy: 'network-only',
   })
 
-  const topics: Topic[] = (data as any)?.getAllTopics?.data || []
-  const total: number = (data as any)?.getAllTopics?.total || 0
+  const topics: Topic[] = (data as any)?.affair?.topics?.data || []
+  const total: number = (data as any)?.affair?.topics?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
   const handleRefresh = () => {

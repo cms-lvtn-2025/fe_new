@@ -4,7 +4,7 @@ import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { GET_DEFENCE_SCHEDULE, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
-import { DELETE_COUNCIL } from '@/lib/graphql/mutations/admin.mutations'
+import { DELETE_COUNCIL } from '@/lib/graphql/mutations/admin'
 import { Plus, Eye, Trash2, RefreshCw, Search, Filter, Download } from 'lucide-react'
 import Loading from '@/components/common/Loading'
 import type { Council } from '@/types/defence'
@@ -30,14 +30,14 @@ export default function CouncilsManagementPage() {
   const { data: semestersData } = useQuery(GET_ALL_SEMESTERS, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 100 , sortBy: 'created_at', descending: true },
         filters: [],
       },
     },
   })
 
   const semesters = useMemo(() => {
-    return (semestersData as any)?.getAllSemesters?.data || []
+    return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
 
   // Set default semester to latest when data is loaded
@@ -105,9 +105,7 @@ export default function CouncilsManagementPage() {
       search: {
         pagination: {
           page: currentPage,
-          pageSize: pageSize,
-          sortBy: 'created_at',
-          descending: true,
+          pageSize: pageSize
         },
         filters: buildFilters(),
       },
@@ -115,8 +113,8 @@ export default function CouncilsManagementPage() {
     fetchPolicy: 'network-only',
   })
 
-  const councils: Council[] = data?.getAllCouncils?.data || []
-  const total: number = data?.getAllCouncils?.total || 0
+  const councils: Council[] = (data as any)?.affair?.councils?.data || []
+  const total: number = (data as any)?.affair?.councils?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
   // Only show error if there's no data

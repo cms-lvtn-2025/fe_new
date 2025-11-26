@@ -7,6 +7,7 @@
  * - topic.queries.ts: Queries liên quan đến đề tài
  * - enrollment.queries.ts: Queries liên quan đến enrollment/đăng ký
  * - council.queries.ts: Queries liên quan đến hội đồng bảo vệ
+ * - detail.queries.ts: Detail queries sử dụng filter (alternative approach)
  */
 
 // User queries

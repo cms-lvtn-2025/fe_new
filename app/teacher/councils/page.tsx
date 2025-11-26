@@ -76,7 +76,7 @@ export default function TeacherCouncilsPage() {
       page: currentPage,
       pageSize,
       sortBy: 'created_at',
-      descending: true
+      descending: true,
     },
     filters: buildFilters()
   })
@@ -132,12 +132,14 @@ export default function TeacherCouncilsPage() {
     alert('Chức năng Export Excel điểm sẽ được triển khai sau khi backend hoàn thiện')
   }
 
-  if (error) {
+  if (error && !defences) {
+  const handlePageChange = (page: number) => {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400">Lỗi: {error.message}</p>
       </div>
     )
+  }
   }
 
   return (

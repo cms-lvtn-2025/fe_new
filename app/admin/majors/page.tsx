@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react'
 import { useQuery, useMutation } from '@apollo/client/react'
 import { GET_ALL_MAJORS, GET_ALL_FACULTIES } from '@/lib/graphql/queries/admin'
-import { DELETE_MAJOR } from '@/lib/graphql/mutations/admin.mutations'
+import { DELETE_MAJOR } from '@/lib/graphql/mutations/admin'
 import { Plus, Edit, Trash2, RefreshCw, Search, Filter } from 'lucide-react'
 import Loading from '@/components/common/Loading'
 import { MajorFormDialog } from '@/components/admin/majors/major-form-dialog'
@@ -48,14 +48,14 @@ export default function MajorsManagementPage() {
   const { data: facultiesData } = useQuery<FacultiesData>(GET_ALL_FACULTIES, {
     variables: {
       search: {
-        pagination: { page: 1, pageSize: 100, sortBy: 'created_at', descending: true },
+        pagination: { page: 1, pageSize: 100 , sortBy: 'created_at', descending: true },
         filters: [],
       },
     },
   })
 
   const faculties = useMemo(() => {
-    return facultiesData?.getAllFaculties?.data || []
+    return (facultiesData as any)?.affair?.faculties?.data || []
   }, [facultiesData])
 
   // Build filters
@@ -105,9 +105,7 @@ export default function MajorsManagementPage() {
       search: {
         pagination: {
           page: currentPage,
-          pageSize: pageSize,
-          sortBy: 'created_at',
-          descending: true,
+          pageSize: pageSize
         },
         filters: buildFilters(),
       },
@@ -115,8 +113,8 @@ export default function MajorsManagementPage() {
     fetchPolicy: 'network-only',
   })
 
-  const majors: Major[] = data?.getAllMajors?.data || []
-  const total: number = data?.getAllMajors?.total || 0
+  const majors: Major[] = (data as any)?.affair?.majors?.data || []
+  const total: number = (data as any)?.affair?.majors?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
   const [deleteMajor] = useMutation(DELETE_MAJOR, {
@@ -172,7 +170,7 @@ export default function MajorsManagementPage() {
   }
 
   const getFacultyName = (facultyCode: string) => {
-    const faculty = faculties.find((f) => f.id === facultyCode)
+    const faculty = faculties.find((f: any) => f.id === facultyCode)
     return faculty?.title || facultyCode
   }
 
@@ -242,7 +240,7 @@ export default function MajorsManagementPage() {
               className="pl-9 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
             >
               <option value="all">Tất cả khoa</option>
-              {faculties.map((faculty) => (
+              {faculties.map((faculty: any) => (
                 <option key={faculty.id} value={faculty.id}>
                   {faculty.title}
                 </option>

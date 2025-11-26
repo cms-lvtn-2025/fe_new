@@ -1,7 +1,10 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useQuery } from '@apollo/client/react'
+import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
+import { GET_TOPIC_DETAIL } from '@/lib/graphql/queries/admin'
 import { ArrowLeft, Calendar, FileText, Users, Award, Clock, TrendingUp, Star } from 'lucide-react'
 
 interface TopicDetail {
@@ -115,16 +118,37 @@ const STAGE_LABELS: Record<string, string> = {
 export default function TopicDetailPage() {
   const params = useParams()
   const router = useRouter()
-  const [topic, setTopic] = useState<TopicDetail | null>(null)
+  const topicId = params.id as string
 
-  useEffect(() => {
-    // Lấy data từ sessionStorage
-    const storedData = sessionStorage.getItem('topicDetailData')
-    if (storedData) {
-      const data = JSON.parse(storedData)
-      setTopic(data)
-    }
-  }, [])
+  const { data, loading, error } = useQuery(GET_TOPIC_DETAIL, {
+    variables: { search: createDetailSearch(topicId) },
+    skip: !topicId,
+  })
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
+          <button onClick={() => router.push('/admin/topics')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
+        </div>
+      </div>
+    )
+  }
+
+  const topic = (data as any)?.affair?.topics?.data?.[0]
 
   if (!topic) {
     return (
@@ -153,7 +177,7 @@ export default function TopicDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push(topic.backUrl || '/admin/topics')}
+            onClick={() => router.push('/admin/topics')}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -243,7 +267,7 @@ export default function TopicDetailPage() {
               Hội đồng bảo vệ
             </h2>
             <div className="space-y-4">
-              {topic.topicCouncils.map((tc) => (
+              {topic.topicCouncils.map((tc: any) => (
                 <div
                   key={tc.id}
                   className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
@@ -282,24 +306,10 @@ export default function TopicDetailPage() {
                         Giảng viên hướng dẫn:
                       </p>
                       <div className="flex flex-wrap gap-2">
-                        {tc.supervisors.map((sup) => (
+                        {tc.supervisors.map((sup: any) => (
                           <button
                             key={sup.id}
-                            onClick={() => {
-                              const teacherData = {
-                                id: sup.teacher.id,
-                                email: sup.teacher.email,
-                                username: sup.teacher.username,
-                                gender: 'male',
-                                majorCode: topic.majorCode,
-                                semesterCode: topic.semesterCode,
-                                createdAt: topic.createdAt,
-                                updatedAt: topic.updatedAt,
-                                backUrl: `/admin/topics/${topic.id}`,
-                              }
-                              sessionStorage.setItem('teacherDetailData', JSON.stringify(teacherData))
-                              router.push(`/admin/teachers/${sup.teacher.id}`)
-                            }}
+                            onClick={() => router.push(`/admin/teachers/${sup.teacher.id}`)}
                             className="px-3 py-1 bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-full text-sm hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
                           >
                             {sup.teacher.username}
@@ -322,21 +332,6 @@ export default function TopicDetailPage() {
                             <button
                               onClick={() => {
                                 if (enr.student) {
-                                  const studentData = {
-                                    id: enr.studentCode,
-                                    email: enr.student.email,
-                                    phone: '',
-                                    username: enr.student.username,
-                                    gender: 'male',
-                                    majorCode: topic.majorCode,
-                                    classCode: '',
-                                    semesterCode: topic.semesterCode,
-                                    createdAt: topic.createdAt,
-                                    updatedAt: topic.updatedAt,
-                                    enrollments: [enr],
-                                    backUrl: `/admin/topics/${topic.id}`,
-                                  }
-                                  sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
                                   router.push(`/admin/students/${enr.studentCode}`)
                                 }
                               }}
@@ -537,7 +532,7 @@ export default function TopicDetailPage() {
               Tài liệu
             </h2>
             <div className="space-y-2">
-              {topic.files.map((file) => (
+              {topic.files.map((file: any) => (
                 <div
                   key={file.id}
                   className="flex items-center justify-between p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"

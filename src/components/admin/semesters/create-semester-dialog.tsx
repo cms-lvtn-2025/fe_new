@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useMutation } from '@apollo/client/react'
-import { CREATE_SEMESTER } from '@/lib/graphql/mutations/admin.mutations'
+import { CREATE_SEMESTER } from '@/lib/graphql/mutations/admin'
 import { X } from 'lucide-react'
 
 interface CreateSemesterDialogProps {
