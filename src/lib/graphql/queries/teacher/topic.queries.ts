@@ -3,7 +3,7 @@ import { gql } from "@apollo/client"
 /**
  * Query để lấy danh sách topic councils mà giáo viên hướng dẫn
  * OPTIMIZED: Only fetches fields needed for list display
- * Removed: detailed enrollments, grades (reserved for detail page)
+ * Added: percentStage1, percentStage2 for progress display
  */
 export const GET_MY_SUPERVISED_TOPIC_COUNCILS = gql`
   query GetMySupervisedTopicCouncils($search: SearchRequestInput) {
@@ -23,6 +23,8 @@ export const GET_MY_SUPERVISED_TOPIC_COUNCILS = gql`
               id
               title
               status
+              percentStage1
+              percentStage2
             }
             enrollments {
               id
@@ -66,6 +68,15 @@ export const GET_TOPIC_COUNCIL_DETAIL = gql`
               status
               percentStage1
               percentStage2
+              major {
+                id
+                title
+                facultyCode
+              }
+              semester {
+                id
+                title
+              }
             }
             enrollments {
               id

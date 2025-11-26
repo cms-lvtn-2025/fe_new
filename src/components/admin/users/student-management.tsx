@@ -19,6 +19,7 @@ interface Student {
   semesterCode: string
   createdAt: string
   updatedAt: string
+  mssv: string
 }
 
 export function StudentManagement() {
@@ -46,7 +47,6 @@ export function StudentManagement() {
       },
     },
   })
-
   const semesters = useMemo(() => {
     return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
@@ -142,7 +142,6 @@ export function StudentManagement() {
     },
     fetchPolicy: 'network-only',
   })
-
   const students: Student[] = (data as any)?.affair?.students?.data || []
   const total: number = (data as any)?.affair?.students?.total || 0
   const totalPages = Math.ceil(total / pageSize)
@@ -377,7 +376,17 @@ export function StudentManagement() {
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {student.id}
+                        <button
+                          onClick={() => {
+                            const studentData = { ...student, backUrl: '/admin/users' }
+                            sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
+                            router.push(`/admin/students/${student.id}`)
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors cursor-pointer"
+                          title="Xem chi tiết"
+                        >
+                          {student.mssv}
+                        </button>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -407,17 +416,6 @@ export function StudentManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            const studentData = { ...student, backUrl: '/admin/users' }
-                            sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
-                            router.push(`/admin/students/${student.id}`)
-                          }}
-                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
                         <button
                           onClick={() => {
                             setSelectedStudent(student)

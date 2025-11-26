@@ -11,7 +11,7 @@ import { vi } from 'date-fns/locale'
 import type { Council } from '@/types/defence'
 import { AssignTopicsDialog } from '@/components/admin/councils/assign-topics-dialog'
 import { DELETE_COUNCIL, UPDATE_COUNCIL } from '@/lib/graphql/mutations/admin'
-import { ASSIGN_TOPIC_TO_COUNCIL } from '@/lib/graphql/mutations/department'
+import { ASSIGN_TOPIC_TO_COUNCIL, REMOVE_TOPIC_FROM_COUNCIL } from '@/lib/graphql/mutations/department'
 
 const getPositionLabel = (position: string) => {
   switch (position) {
@@ -101,6 +101,11 @@ export default function CouncilDetailPage() {
       alert(`Lỗi khi gán đề tài: ${error.message}`)
     },
   })
+  const [removeTopicFromCouncil] = useMutation(REMOVE_TOPIC_FROM_COUNCIL, {
+    onError: (error) => {
+      alert(`Lỗi khi gán đề tài: ${error.message}`)
+    },
+  })
 
   if (loading) {
     return (
@@ -113,7 +118,7 @@ export default function CouncilDetailPage() {
     )
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -165,14 +170,14 @@ export default function CouncilDetailPage() {
     setHasChanges(true)
   }
 
-  const handleRemoveTopicFromCouncil = async (topicCouncilId: string) => {
+  const handleRemoveTopicFromCouncil = async (topicCouncilId: string, councilId: string) => {
     if (confirm('Bạn có chắc chắn muốn xóa đề tài này khỏi hội đồng?')) {
       try {
         // Assign null to remove from council
-        await assignTopicToCouncil({
+        await removeTopicFromCouncil({
           variables: {
             topicCouncilId,
-            councilId: null,
+            councilId: councilId,
           },
         })
         window.location.reload()
@@ -382,7 +387,7 @@ export default function CouncilDetailPage() {
                         </span>
                       </div>
                       <button
-                        onClick={() => handleRemoveTopicFromCouncil(topicCouncil.id)}
+                        onClick={() => handleRemoveTopicFromCouncil(topicCouncil.id, council.id)}
                         className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                         title="Xóa khỏi hội đồng"
                       >

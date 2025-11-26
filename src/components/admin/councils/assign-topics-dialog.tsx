@@ -112,7 +112,8 @@ export function AssignTopicsDialog({
       },
     },
     skip: !isOpen,
-  })
+  }) 
+  console.log('Unassigned Topic Councils Data:', data)
 
   const [assignTopicToCouncil, { loading: mutationLoading }] = useMutation(ASSIGN_TOPIC_TO_COUNCIL)
 
@@ -120,7 +121,7 @@ export function AssignTopicsDialog({
   const unassignedTopicCouncils = useMemo(() => {
     if (!(data as any)?.affair?.topics?.data) return []
 
-    const topics: Topic[] = (data as any).getAllTopics.data
+    const topics: Topic[] = (data as any).affair.topics.data
     const unassigned: TopicCouncil[] = []
 
     topics.forEach((topic) => {

@@ -81,7 +81,7 @@ export default function TeacherCouncilDetailPage() {
     )
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400 mb-4">Lỗi: {error.message}</p>
@@ -207,11 +207,16 @@ export default function TeacherCouncilDetailPage() {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                              Sinh viên - Enrollment: {gradeDefence.enrollmentCode || 'N/A'}
+                              Sinh viên: {gradeDefence.enrollment?.student?.username || 'N/A'}
                             </h3>
                             {gradeDefence.note && (
                               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                                 {gradeDefence.note}
+                              </p>
+                            )}
+                            {gradeDefence.enrollment?.student?.mssv && (
+                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-mono">
+                                MSSV: {gradeDefence.enrollment.student.mssv}
                               </p>
                             )}
                           </div>

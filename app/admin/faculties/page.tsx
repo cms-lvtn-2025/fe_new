@@ -23,9 +23,11 @@ interface Faculty {
 }
 
 interface FacultiesData {
-  getAllFaculties: {
-    total: number
-    data: Faculty[]
+  affair: {
+    faculties: {
+      total: number
+      data: Faculty[]
+    }
   }
 }
 
@@ -83,8 +85,8 @@ export default function FacultiesManagementPage() {
     fetchPolicy: 'network-only',
   })
 
-  const faculties: Faculty[] = data?.getAllFaculties?.data || []
-  const total: number = data?.getAllFaculties?.total || 0
+  const faculties: Faculty[] = data?.affair?.faculties?.data || []
+  const total: number = data?.affair?.faculties?.total || 0
   const totalPages = Math.ceil(total / pageSize)
 
   const [deleteFaculty] = useMutation(DELETE_FACULTY, {

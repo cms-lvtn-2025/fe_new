@@ -347,12 +347,22 @@ export default function TopicsManagementPage() {
                   <tr key={topic.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {topic.id}
-                      </span>
+                        {topic.id.slice(0, 8)}... 
+                      </span> 
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {topic.title}
+                         <button
+                          onClick={() => {
+                            const topicData = { ...topic, backUrl: '/admin/topics' }
+                            sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
+                            router.push(`/admin/topics/${topic.id}`)
+                          }}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          title="Xem chi tiết"
+                        >
+                          {topic.title}
+                        </button>
                       </span>
                     </td>
                     <td className="px-6 py-4">
@@ -400,17 +410,7 @@ export default function TopicsManagementPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* View Detail */}
-                        <button
-                          onClick={() => {
-                            const topicData = { ...topic, backUrl: '/admin/topics' }
-                            sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
-                            router.push(`/admin/topics/${topic.id}`)
-                          }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                       
 
                         {/* Approve - Only for TOPIC_PENDING */}
                         {topic.status === 'TOPIC_PENDING' && (

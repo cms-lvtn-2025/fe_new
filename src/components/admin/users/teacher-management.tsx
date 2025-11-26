@@ -11,6 +11,7 @@ import { DeleteTeacherDialog } from './delete-teacher-dialog'
 interface Teacher {
   id: string
   email: string
+  msgv: string
   username: string
   gender: string
   majorCode: string
@@ -307,7 +308,17 @@ export function TeacherManagement() {
                   <tr key={teacher.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {teacher.id}
+                         <button
+                          onClick={() => {
+                            const teacherData = { ...teacher, backUrl: '/admin/users' }
+                            sessionStorage.setItem('teacherDetailData', JSON.stringify(teacherData))
+                            router.push(`/admin/teachers/${teacher.id}`)
+                          }}
+                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors cursor-pointer"
+                          title="Xem chi tiết"
+                        >
+                          {teacher.msgv}
+                        </button>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -332,17 +343,7 @@ export function TeacherManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
-                        <button
-                          onClick={() => {
-                            const teacherData = { ...teacher, backUrl: '/admin/users' }
-                            sessionStorage.setItem('teacherDetailData', JSON.stringify(teacherData))
-                            router.push(`/admin/teachers/${teacher.id}`)
-                          }}
-                          className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        
                         <button
                           onClick={() => {
                             setSelectedTeacher(teacher)

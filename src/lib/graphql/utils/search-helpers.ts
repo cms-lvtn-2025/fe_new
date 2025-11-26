@@ -173,10 +173,11 @@ export function createMultiFilterSearch(
  */
 export function createDetailSearch(
   id: string,
-  field: string = 'id'
+  field: string = 'id',
+  pageSize: number = 1
 ): SearchRequestInput {
   return {
-    pagination: { page: 1, pageSize: 1 },
+    pagination: { page: 1, pageSize },
     filters: [
       {
         condition: {

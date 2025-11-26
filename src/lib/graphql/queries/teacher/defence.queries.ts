@@ -94,6 +94,17 @@ export const GET_DEFENCE_DETAIL = gql`
                 score
                 maxScore
               }
+              enrollment {
+                id
+                title
+                studentCode
+                student {
+                  id
+                  email
+                  username
+                  mssv
+                }
+              }
             }
           }
         }

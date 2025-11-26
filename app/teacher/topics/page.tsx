@@ -197,16 +197,13 @@ export default function TeacherTopicsPage() {
               <thead className="bg-gray-50 dark:bg-gray-700">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Mã đề tài
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Tên đề tài
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Giai đoạn
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                    Sinh viên
+                    Sinh viên (MSSV)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Trạng thái
@@ -225,7 +222,7 @@ export default function TeacherTopicsPage() {
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {topicCouncils.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center">
+                    <td colSpan={7} className="px-6 py-12 text-center">
                       <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <div className="text-gray-500 dark:text-gray-400">
                         {searchTerm || selectedStatus !== 'all'
@@ -241,11 +238,6 @@ export default function TeacherTopicsPage() {
 
                     return (
                       <tr key={tc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                            {topic?.id || '-'}
-                          </span>
-                        </td>
                         <td
                           className="px-6 py-4 cursor-pointer"
                           onClick={() => handleViewDetail(tc)}
@@ -253,9 +245,6 @@ export default function TeacherTopicsPage() {
                           <span className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
                             {topic?.title || 'N/A'}
                           </span>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {topic?.major?.title || ''} • {topic?.semester?.title || ''}
-                          </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded">
@@ -263,17 +252,27 @@ export default function TeacherTopicsPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm text-gray-900 dark:text-gray-100">
-                              {enrollments.length} sinh viên
-                            </span>
-                          </div>
-                          {enrollments.length > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                              {enrollments.slice(0, 2).map((e: any) => e.student?.username).join(', ')}
-                              {enrollments.length > 2 && ` +${enrollments.length - 2}`}
+                          {enrollments.length > 0 ? (
+                            <div className="space-y-1">
+                              {enrollments.slice(0, 3).map((e: any) => (
+                                <div key={e.id} className="flex items-center gap-2 text-sm">
+                                  <span className="font-mono text-gray-900 dark:text-gray-100">
+                                    {e.studentCode}
+                                  </span>
+                                  <span className="text-gray-500 dark:text-gray-400">-</span>
+                                  <span className="text-gray-600 dark:text-gray-300">
+                                    {e.student?.username}
+                                  </span>
+                                </div>
+                              ))}
+                              {enrollments.length > 3 && (
+                                <div className="text-xs text-gray-500 dark:text-gray-400">
+                                  +{enrollments.length - 3} sinh viên khác
+                                </div>
+                              )}
                             </div>
+                          ) : (
+                            <span className="text-sm text-gray-400 dark:text-gray-500">Chưa có sinh viên</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">

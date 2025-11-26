@@ -119,7 +119,7 @@ export default function TopicDetailPage() {
   const params = useParams()
   const router = useRouter()
   const topicId = params.id as string
-
+  const backUrl = new URLSearchParams(window.location.search).get('backUrl') || '/admin/topics'
   const { data, loading, error } = useQuery(GET_TOPIC_DETAIL, {
     variables: { search: createDetailSearch(topicId) },
     skip: !topicId,
@@ -136,7 +136,7 @@ export default function TopicDetailPage() {
     )
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -177,7 +177,7 @@ export default function TopicDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push('/admin/topics')}
+            onClick={() => router.push(backUrl)}
             className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />

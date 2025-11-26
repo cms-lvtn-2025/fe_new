@@ -35,7 +35,7 @@ export function ViewCouncilDialog({ isOpen, onClose, council }: ViewCouncilDialo
       backUrl: '/admin/defences',
     }
     sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
-    router.push(`/admin/topics/${topicCouncil.topicCode}`)
+    router.push(`/admin/topics/${topicCouncil.topicCode}?backUrl=/admin/defences`)
     onClose()
   }
 

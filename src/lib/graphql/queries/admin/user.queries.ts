@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client"
+import { gql } from "@apollo/client";
 
 /**
  * Admin (Affair) - User Queries
@@ -18,6 +18,7 @@ export const GET_LIST_TEACHERS = gql`
         data {
           id
           email
+          msgv
           username
           gender
           majorCode
@@ -25,7 +26,7 @@ export const GET_LIST_TEACHERS = gql`
       }
     }
   }
-`
+`;
 
 /**
  * Query để lấy danh sách sinh viên
@@ -41,6 +42,7 @@ export const GET_LIST_STUDENTS = gql`
           id
           email
           phone
+          mssv
           username
           majorCode
           classCode
@@ -48,16 +50,19 @@ export const GET_LIST_STUDENTS = gql`
       }
     }
   }
-`
+`;
 
 /**
  * Query để lấy chi tiết sinh viên (dùng students với filter theo ID)
  * Lấy đầy đủ data bao gồm enrollments, grades
  */
 export const GET_STUDENT_DETAIL = gql`
-  query GetStudentDetail($search: SearchRequestInput!) {
+  query GetStudentDetail(
+    $search_student: SearchRequestInput!
+    $search_enrollment: SearchRequestInput!
+  ) {
     affair {
-      students(search: $search) {
+      students(search: $search_student) {
         total
         data {
           id
@@ -73,45 +78,57 @@ export const GET_STUDENT_DETAIL = gql`
           updatedAt
           createdBy
           updatedBy
-          enrollments {
+        }
+      }
+      enrollments(search: $search_enrollment) {
+        total
+        data {
+          id
+          title
+          studentCode
+          topicCouncilCode
+          finalCode
+          gradeReviewCode
+          midtermCode
+          createdAt
+          updatedAt
+          midterm {
             id
             title
-            studentCode
-            topicCouncilCode
-            finalCode
-            gradeReviewCode
-            midtermCode
+            grade
+            status
+            feedback
             createdAt
             updatedAt
-            midterm {
-              id
-              title
-              grade
-              status
-              feedback
-            }
-            final {
-              id
-              title
-              supervisorGrade
-              departmentGrade
-              finalGrade
-              status
-              notes
-            }
-            gradeReview {
-              id
-              title
-              reviewGrade
-              status
-              notes
-            }
+            createdBy
+            updatedBy
+          }
+          final {
+            id
+            title
+            supervisorGrade
+            departmentGrade
+            finalGrade
+            status
+            notes
+            completionDate
+            createdAt
+            updatedAt
+            createdBy
+            updatedBy
+          }
+          gradeReview {
+            id
+            title
+            reviewGrade
+            status
+            notes
           }
         }
       }
     }
   }
-`
+`;
 
 /**
  * Query để lấy chi tiết giáo viên (dùng teachers với filter theo ID)
@@ -143,4 +160,4 @@ export const GET_TEACHER_DETAIL = gql`
       }
     }
   }
-`
+`;

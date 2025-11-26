@@ -18,41 +18,7 @@ interface StudentDetail {
   semesterCode: string
   createdAt: string
   updatedAt: string
-  backUrl?: string
-  enrollments?: Array<{
-    id: string
-    title: string
-    studentCode: string
-    topicCouncilCode: string
-    finalCode?: string
-    gradeReviewCode?: string
-    midtermCode?: string
-    createdAt: string
-    updatedAt: string
-    midterm?: {
-      id: string
-      title: string
-      grade: number
-      status: string
-      feedback: string
-    } | null
-    final?: {
-      id: string
-      title: string
-      supervisorGrade: number
-      departmentGrade: number
-      finalGrade: number
-      status: string
-      notes: string
-    } | null
-    gradeReview?: {
-      id: string
-      title: string
-      reviewGrade: number
-      status: string
-      notes: string
-    } | null
-  }>
+  backUrl?: string 
 }
 
 const GENDER_LABELS: Record<string, string> = {
@@ -67,10 +33,10 @@ export default function StudentDetailPage() {
   const studentId = params.id as string
 
   const { data, loading, error } = useQuery(GET_STUDENT_DETAIL, {
-    variables: { search: createDetailSearch(studentId) },
+    variables: { search_student: createDetailSearch(studentId), search_enrollment: createDetailSearch(studentId, "student_code", 100) },
     skip: !studentId,
   })
-
+  console.log('Student Detail Data:', data)
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -104,6 +70,7 @@ export default function StudentDetailPage() {
   }
 
   const student = (data as any)?.affair?.students?.data?.[0]
+  const enrollments = (data as any)?.affair?.enrollments?.data || []
 
   if (!student) {
     return (
@@ -199,14 +166,14 @@ export default function StudentDetailPage() {
         </div>
 
         {/* Enrollments */}
-        {student.enrollments && student.enrollments.length > 0 && (
+        {enrollments && enrollments.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
               Đề tài đăng ký
             </h2>
             <div className="space-y-4">
-              {student.enrollments.map((enrollment: any) => (
+              {enrollments.map((enrollment: any) => (
                 <div
                   key={enrollment.id}
                   className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"

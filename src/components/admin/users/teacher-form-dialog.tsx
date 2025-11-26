@@ -19,6 +19,7 @@ interface Teacher {
   gender: string
   majorCode: string
   semesterCode: string
+  msgv: string
   roles?: TeacherRole[]
 }
 

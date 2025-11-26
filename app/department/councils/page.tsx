@@ -200,9 +200,6 @@ export default function DepartmentCouncilsPage() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Số đề tài
                 </th>
-                <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
-                  Thao tác
-                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -220,12 +217,19 @@ export default function DepartmentCouncilsPage() {
                   <tr key={council.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {council.id}
+                        {council.id.slice(0, 8)}...
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {council.title}
+                        <button
+                          onClick={() => handleViewDetail(council)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          title="Xem chi tiết"
+                        >
+                          {council.title}
+                          {/* <Eye className="w-4 h-4" /> */}
+                        </button>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -243,18 +247,6 @@ export default function DepartmentCouncilsPage() {
                       <div className="flex items-center gap-2 text-sm text-gray-900 dark:text-gray-100">
                         <Calendar className="w-4 h-4" />
                         {council.topicCouncils?.length || 0}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        {/* View Detail */}
-                        <button
-                          onClick={() => handleViewDetail(council)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
                       </div>
                     </td>
                   </tr>

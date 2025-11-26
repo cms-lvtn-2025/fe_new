@@ -382,12 +382,18 @@ export default function CouncilsManagementPage() {
                   <tr key={council.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {council.id}
+                        {council.id.slice(0, 8)}...
                       </span>
                     </td>
                     <td className="px-6 py-4">
                       <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
-                        {council.title}
+                        <button
+                          onClick={() => handleViewDetail(council)}
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          title="Xem chi tiết"
+                        >
+                          {council.title}
+                        </button>
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
@@ -414,13 +420,7 @@ export default function CouncilsManagementPage() {
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
                         {/* View Detail */}
-                        <button
-                          onClick={() => handleViewDetail(council)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
-                          title="Xem chi tiết"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
+                        
 
                         {/* Delete */}
                         <button
