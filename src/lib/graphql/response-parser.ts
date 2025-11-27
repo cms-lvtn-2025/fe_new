@@ -15,7 +15,6 @@ import type {
   CouncilListResponse,
   EnrollmentListResponse,
   DefenceListResponse,
-  GradeReviewListResponse,
   TopicCouncilListResponse,
   Semester,
   Student,
@@ -66,12 +65,7 @@ export function parseTeacherDefences(data: any): DefenceListResponse {
   }
 }
 
-export function parseTeacherGradeReviews(data: any): GradeReviewListResponse {
-  return {
-    total: data?.teacher?.reviewer?.gradeReviews?.total || 0,
-    data: data?.teacher?.reviewer?.gradeReviews?.data || [],
-  }
-}
+
 
 // ============================================
 // DEPARTMENT PARSERS

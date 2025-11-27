@@ -2,7 +2,6 @@ interface StatisticsCardProps {
   semesterName: string | undefined
   supervisedCount: number
   defencesCount: number
-  reviewsCount: number
 }
 
 interface StatItemProps {
@@ -26,7 +25,6 @@ export function StatisticsCard({
   semesterName,
   supervisedCount,
   defencesCount,
-  reviewsCount,
 }: StatisticsCardProps) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
@@ -45,11 +43,7 @@ export function StatisticsCard({
           count={defencesCount}
           colorClass="bg-purple-50 dark:bg-purple-900/20"
         />
-        <StatItem
-          label="Phản biện được gán"
-          count={reviewsCount}
-          colorClass="bg-green-50 dark:bg-green-900/20"
-        />
+        
       </div>
     </div>
   )

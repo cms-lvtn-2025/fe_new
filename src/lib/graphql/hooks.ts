@@ -11,7 +11,6 @@ import type {
   Council,
   Enrollment,
   Defence,
-  GradeReview,
   TopicCouncil,
   SearchRequestInput,
   StudentQuery,
@@ -29,7 +28,6 @@ import {
   GET_MY_TEACHER_PROFILE,
   GET_MY_SUPERVISED_TOPIC_COUNCILS,
   GET_MY_DEFENCES,
-  GET_MY_GRADE_REVIEWS,
   // Academic Affairs queries
   GET_LIST_TEACHERS,
   GET_LIST_STUDENTS,
@@ -57,7 +55,6 @@ import {
   ADD_GRADE_DEFENCE_CRITERION,
   UPDATE_GRADE_DEFENCE_CRITERION,
   DELETE_GRADE_DEFENCE_CRITERION,
-  UPDATE_GRADE_REVIEW,
   CREATE_TOPIC_FOR_SUPERVISOR,
   CREATE_TOPIC_COUNCIL_FOR_SUPERVISOR,
   // Academic Affairs mutations
@@ -296,21 +293,6 @@ export function useMyDefences(search?: SearchRequestInput, options?: { skip?: bo
  * Hook để lấy danh sách grade reviews của giáo viên
  * Updated for Backend Schema v2 - Namespace-based approach
  */
-export function useMyGradeReviews(search?: SearchRequestInput, options?: { skip?: boolean }) {
-  const { data, loading, error, refetch } = useQuery<{ teacher: TeacherQuery }>(GET_MY_GRADE_REVIEWS, {
-    variables: { search },
-    fetchPolicy: "network-only",
-    skip: options?.skip || false,
-  })
-
-  return {
-    gradeReviews: data?.teacher?.reviewer?.gradeReviews?.data || [],
-    total: data?.teacher?.reviewer?.gradeReviews?.total || 0,
-    loading,
-    error,
-    refetch,
-  }
-}
 
 /**
  * Hook để cập nhật profile giáo viên
@@ -435,17 +417,6 @@ export function useDeleteGradeDefenceCriterion() {
 /**
  * Hook để cập nhật grade review
  */
-export function useUpdateGradeReview() {
-  const [updateGradeReview, { loading, error }] = useMutation(UPDATE_GRADE_REVIEW, {
-    refetchQueries: [{ query: GET_MY_GRADE_REVIEWS }],
-  })
-
-  return {
-    updateGradeReview,
-    loading,
-    error,
-  }
-}
 
 /**
  * Hook để tạo/gửi đề tài mới (cho supervisor)

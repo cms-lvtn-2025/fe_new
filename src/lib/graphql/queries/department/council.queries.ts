@@ -111,12 +111,7 @@ export const GET_DEPARTMENT_COUNCIL_DETAIL = gql`
                 status
                 notes
               }
-              gradeReview {
-                id
-                reviewGrade
-                status
-                notes
-              }
+              
               gradeDefences {
                 id
                 totalScore

@@ -141,7 +141,6 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
   const supervisors = topicCouncil?.supervisors || []
   const gradeTopicCouncils = enrollment.gradeTopicCouncils || []
   const gradeDefences = enrollment.gradeDefences || []
-  const gradeReview = enrollment.gradeReview
   const midtermGrade = enrollment.midterm
   const finalGrade = enrollment.final
 
@@ -422,17 +421,7 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
             </div>
           </div>
 
-          <div className="p-4 bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">Điểm phản biện</p>
-                <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
-                  {gradeReview?.reviewGrade?.toFixed(2) || 'Chưa có'}
-                </p>
-              </div>
-              <Award className="w-8 h-8 text-orange-500" />
-            </div>
-          </div>
+          
         </div>
 
         {/* Detailed Grades by Supervisor */}
@@ -559,35 +548,7 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
           )}
         </div>
 
-        {/* Review Grade */}
-        {gradeReview && (
-          <div className="mt-8">
-            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-3">
-              Điểm phản biện
-            </h3>
-            <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Điểm phản biện</div>
-                  <div className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                    {gradeReview.reviewGrade?.toFixed(2) || 'Chưa có'}
-                  </div>
-                  {gradeReview.status && (
-                    <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Trạng thái: {gradeReview.status}
-                    </div>
-                  )}
-                </div>
-                <Award className="w-12 h-12 text-orange-500" />
-              </div>
-              {gradeReview.notes && (
-                <div className="mt-3 pt-3 border-t border-orange-200 dark:border-orange-700 text-sm text-gray-600 dark:text-gray-400">
-                  <span className="font-medium">Ghi chú:</span> {gradeReview.notes}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
+        
       </div>
     </div>
   )

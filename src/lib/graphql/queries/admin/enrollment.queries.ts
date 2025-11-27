@@ -105,13 +105,7 @@ export const GET_ENROLLMENT_DETAIL = gql`
             status
             notes
           }
-          gradeReview {
-            id
-            title
-            reviewGrade
-            status
-            notes
-          }
+          
           gradeDefences {
             id
             defenceCode

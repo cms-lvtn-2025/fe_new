@@ -117,13 +117,7 @@ export const GET_STUDENT_DETAIL = gql`
             createdBy
             updatedBy
           }
-          gradeReview {
-            id
-            title
-            reviewGrade
-            status
-            notes
-          }
+          
         }
       }
     }

@@ -47,15 +47,3 @@ export interface Defence {
   gradeDefences?: any[] // TODO: Define GradeDefence interface
 }
 
-export interface GradeReview {
-  id: string
-  title: string
-  teacherCode: string
-  reviewGrade?: number
-  status: string
-  notes?: string
-  completionDate?: string
-  createdAt: string
-  updatedAt: string
-  enrollment?: any // TODO: Define Enrollment interface
-}

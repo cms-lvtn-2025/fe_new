@@ -145,7 +145,6 @@ export interface Enrollment {
   topicCouncil?: TopicCouncil
   midterm?: Midterm
   final?: Final
-  gradeReview?: GradeReview
   gradeDefences?: GradeDefence[]
   __typename?: 'Enrollment'
 }
@@ -170,19 +169,7 @@ export interface Final {
   __typename?: 'Final'
 }
 
-export interface GradeReview {
-  id: string
-  title: string
-  teacherCode: string
-  reviewGrade: number
-  status: string
-  notes?: string
-  completionDate?: string
-  createdAt: string
-  updatedAt: string
-  enrollment?: Enrollment
-  __typename?: 'GradeReview'
-}
+
 
 export interface GradeDefence {
   id: string
@@ -282,11 +269,6 @@ export interface DefenceListResponse {
   __typename?: 'DefenceListResponse'
 }
 
-export interface GradeReviewListResponse {
-  total: number
-  data: GradeReview[]
-  __typename?: 'GradeReviewListResponse'
-}
 
 // ============================================
 // QUERY RESPONSE TYPES
@@ -311,16 +293,12 @@ export interface TeacherCouncilQuery {
   __typename?: 'TeacherCouncilQuery'
 }
 
-export interface TeacherReviewerQuery {
-  gradeReviews?: GradeReviewListResponse
-  __typename?: 'TeacherReviewerQuery'
-}
+
 
 export interface TeacherQuery {
   me?: Teacher
   supervisor?: TeacherSupervisorQuery
   council?: TeacherCouncilQuery
-  reviewer?: TeacherReviewerQuery
   __typename?: 'TeacherQuery'
 }
 
@@ -506,12 +484,7 @@ export interface GradeDefenceCriterionInput {
   maxScore: number
 }
 
-export interface UpdateGradeReviewInput {
-  id: string
-  reviewGrade: number
-  status?: string
-  notes?: string
-}
+
 
 // ============================================
 // ENUM TYPES

@@ -254,7 +254,6 @@ export interface EnrollmentDetail {
   }
   midterm?: MidtermGrade
   final?: FinalGrade
-  gradeReview?: GradeReview
   gradeDefences?: GradeDefenceItem[]
 }
 
@@ -269,7 +268,6 @@ export interface EnrollmentWithGrades {
   }
   midterm?: MidtermGrade
   final?: FinalGrade
-  gradeReview?: GradeReview
   gradeDefences?: GradeDefenceItem[]
 }
 
@@ -291,13 +289,7 @@ export interface FinalGrade {
   notes?: string
 }
 
-export interface GradeReview {
-  id: string
-  title: string
-  reviewGrade: number
-  status: string
-  notes?: string
-}
+
 
 export interface GradeDefenceItem {
   id: string
@@ -597,7 +589,6 @@ export interface StudentEnrollmentDetail {
   }
   midterm?: MidtermGrade
   final?: FinalGrade
-  gradeReview?: GradeReview
   gradeDefences?: GradeDefenceItem[]
 }
 

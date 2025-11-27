@@ -113,12 +113,7 @@ export const GET_COUNCIL_DETAIL = gql`
                 status
                 notes
               }
-              gradeReview {
-                id
-                reviewGrade
-                status
-                notes
-              }
+              
               gradeDefences {
                 id
                 totalScore
@@ -263,12 +258,7 @@ export const GET_DEFENCE_SCHEDULE = gql`
                 status
                 notes
               }
-              gradeReview {
-                id
-                reviewGrade
-                status
-                notes
-              }
+              
               gradeDefences {
               id
               totalScore

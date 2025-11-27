@@ -98,7 +98,6 @@ export default function StudentThesisPage() {
       student: enrollment.student,
       gradeTopicCouncils: enrollment.gradeTopicCouncils,
       gradeDefences: enrollment.gradeDefences,
-      gradeReview: enrollment.gradeReview,
       midterm: enrollment.midterm,
       final: enrollment.final,
       createdAt: enrollment.createdAt,

@@ -5,7 +5,6 @@ import {
   useMyTeacherProfile,
   useMySupervisedTopicCouncils,
   useMyDefences,
-  useMyGradeReviews,
 } from '@/lib/graphql/hooks'
 import { useSemester } from '@/lib/contexts/semester-context'
 import { createSemesterSearch } from '@/lib/graphql/utils'
@@ -26,7 +25,6 @@ export default function TeacherInfoPage() {
   // Lấy thống kê từ các hooks
   const { total: supervisedCount } = useMySupervisedTopicCouncils(semesterSearch.search)
   const { total: defencesCount } = useMyDefences(semesterSearch.search)
-  const { total: reviewsCount } = useMyGradeReviews(semesterSearch.search)
 
   if (profileLoading) {
     return (
@@ -65,7 +63,6 @@ export default function TeacherInfoPage() {
         semesterName={currentSemester?.name}
         supervisedCount={supervisedCount}
         defencesCount={defencesCount}
-        reviewsCount={reviewsCount}
       />
     </div>
   )

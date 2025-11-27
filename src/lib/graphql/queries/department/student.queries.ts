@@ -74,13 +74,7 @@ export const GET_DEPARTMENT_STUDENT_DETAIL = gql`
               status
               notes
             }
-            gradeReview {
-              id
-              title
-              reviewGrade
-              status
-              notes
-            }
+            
           }
         }
       }

@@ -55,12 +55,7 @@ interface TopicDetail {
         status: string
         notes?: string
       }
-      gradeReview?: {
-        id: string
-        reviewGrade: number | null
-        status: string
-        notes?: string
-      }
+      
       gradeDefences?: Array<{
         id: string
         totalScore: number | null
@@ -425,20 +420,7 @@ export default function TopicDetailPage() {
                               </>
                             )}
 
-                            {/* Grade Review */}
-                            {enr.gradeReview && (
-                              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <Star className="w-4 h-4 text-orange-600 dark:text-orange-400" />
-                                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    Điểm phản biện
-                                  </span>
-                                </div>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                  {enr.gradeReview.reviewGrade !== null ? enr.gradeReview.reviewGrade : '--'}
-                                </p>
-                              </div>
-                            )}
+                            
                           </div>
 
                           {/* Grade Defences (Council Grades) */}

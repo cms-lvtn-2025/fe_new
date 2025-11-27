@@ -45,13 +45,7 @@ interface StudentDetail {
       status: string
       notes: string
     } | null
-    gradeReview?: {
-      id: string
-      title: string
-      reviewGrade: number
-      status: string
-      notes: string
-    } | null
+    
   }>
 }
 
@@ -280,28 +274,7 @@ export default function StudentDetailPage() {
                       </div>
                     )}
 
-                    {/* Grade Review */}
-                    {enrollment.gradeReview && (
-                      <div className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Award className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                          <p className="text-sm font-medium text-purple-900 dark:text-purple-300">
-                            Phúc khảo
-                          </p>
-                        </div>
-                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">
-                          {enrollment.gradeReview.reviewGrade}
-                        </p>
-                        <p className="text-xs text-purple-600 dark:text-purple-400 mt-1">
-                          {enrollment.gradeReview.status}
-                        </p>
-                        {enrollment.gradeReview.notes && (
-                          <p className="text-xs text-gray-600 dark:text-gray-400 mt-2">
-                            {enrollment.gradeReview.notes}
-                          </p>
-                        )}
-                      </div>
-                    )}
+                    
                   </div>
                 </div>
               ))}

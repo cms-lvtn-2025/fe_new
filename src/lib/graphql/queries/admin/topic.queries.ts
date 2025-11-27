@@ -141,12 +141,7 @@ export const GET_TOPIC_DETAIL = gql`
                 status
                 notes
               }
-              gradeReview {
-                id
-                reviewGrade
-                status
-                notes
-              }
+              
               gradeDefences {
                 id
                 totalScore
