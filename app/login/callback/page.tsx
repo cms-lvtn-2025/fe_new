@@ -151,7 +151,7 @@ function CallbackContent() {
                 redirectUrl = primaryRole === 'teacher' ? '/teacher/topics' :
                              primaryRole === 'department' ? '/department/topics' :
                              primaryRole === 'admin' ? '/admin/users' :
-                             primaryRole === 'student' ? '/student/topics' : '/'
+                             primaryRole === 'student' ? '/student/thesis' : '/'
               } else {
                 // Fallback to login role if no active roles found
                 redirectUrl = role === 'teacher' ? '/teacher/topics' :
@@ -164,7 +164,7 @@ function CallbackContent() {
             }
           } else {
             // For student/admin, use login role directly
-            redirectUrl = role === 'student' ? '/student/topics' :
+            redirectUrl = role === 'student' ? '/student/thesis' :
                          role === 'admin' ? '/admin/users' : '/'
           }
 

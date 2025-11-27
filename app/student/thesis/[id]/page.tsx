@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, use } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery } from '@apollo/client/react'
 import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
@@ -33,16 +33,17 @@ const STAGE_LABELS: Record<string, string> = {
   STAGE_2: 'Giai đoạn 2',
 }
 
-export default function ThesisDetailPage({ params }: { params: { id: string } }) {
+export default function ThesisDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const enrollmentId = params.id
+  const { id: enrollmentId } = use(params)
   const [midtermFileInput, setMidtermFileInput] = useState<File | null>(null)
   const [finalFileInput, setFinalFileInput] = useState<File | null>(null)
-
+  console.log('Enrollment ID:', enrollmentId)
   const { data, loading, error, refetch } = useQuery(GET_MY_ENROLLMENT_DETAIL, {
     variables: { search: createDetailSearch(enrollmentId) },
     skip: !enrollmentId,
   })
+  console.log(data)
 
   const { uploadFile: uploadMidtermFile, loading: uploadingMidterm } = useUploadMidtermFile()
   const { uploadFile: uploadFinalFile, loading: uploadingFinal } = useUploadFinalFile()
@@ -60,7 +61,7 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
     try {
       await uploadMidtermFile({
         variables: {
-          enrollmentId: params.id,
+          enrollmentId: enrollmentId,
           file: midtermFileInput
         }
       })
@@ -82,7 +83,7 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
     try {
       await uploadFinalFile({
         variables: {
-          enrollmentId: params.id,
+          enrollmentId: enrollmentId,
           file: finalFileInput
         }
       })
@@ -106,7 +107,7 @@ export default function ThesisDetailPage({ params }: { params: { id: string } })
     )
   }
 
-  if (error) {
+  if (error && !data) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400 mb-4">Lỗi: {error.message}</p>

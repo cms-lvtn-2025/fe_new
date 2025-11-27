@@ -24,7 +24,7 @@ function getDashboardUrl(userRoles: string[] | null | undefined, singleRole?: st
     case 'teacher':
       return '/teacher/topics'
     case 'student':
-      return '/student/topics'
+      return '/student/thesis'
     case 'admin':
       return '/admin/users' // Changed from /admin/students to /admin/users
     case 'department':
