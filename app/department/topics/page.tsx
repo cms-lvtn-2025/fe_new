@@ -1,196 +1,200 @@
-'use client'
+"use client";
 
-export const dynamic = 'force-dynamic'
+export const dynamic = "force-dynamic";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useDepartmentTopics, useApproveTopicStage1, useRejectTopicStage1 } from '@/lib/graphql/hooks'
-import { FileText, CheckCircle, XCircle, AlertCircle, Upload, Download } from 'lucide-react'
-import { SearchBar } from '@/components/common/SearchBar'
-import { Pagination } from '@/components/common/Pagination'
-import { StatusBadge } from '@/components/common/StatusBadge'
-
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  useDepartmentTopics,
+  useApproveTopicStage1,
+  useRejectTopicStage1,
+} from "@/lib/graphql/hooks";
+import {
+  FileText,
+  CheckCircle,
+  XCircle,
+  AlertCircle,
+  Upload,
+  Download,
+} from "lucide-react";
+import { SearchBar } from "@/components/common/SearchBar";
+import { Pagination } from "@/components/common/Pagination";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { downloadFile } from "@/lib/api/file";
+import { useSemester } from "@/lib/contexts/semester-context";
 interface Topic {
-  id: string
-  title: string
-  status: string
-  majorCode: string
-  semesterCode: string
-  percentStage1?: number
-  percentStage2?: number
-  createdAt: string
-  updatedAt: string
-  files?: any[]
-  topicCouncils?: any[]
+  id: string;
+  title: string;
+  status: string;
+  majorCode: string;
+  semesterCode: string;
+  percentStage1?: number;
+  percentStage2?: number;
+  createdAt: string;
+  updatedAt: string;
+  files?: any[];
+  topicCouncils?: any[];
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  SUBMIT: 'Đã nộp',
-  TOPIC_PENDING: 'Chờ duyệt',
-  APPROVED_1: 'Duyệt lần 1',
-  APPROVED_2: 'Duyệt lần 2',
-  IN_PROGRESS: 'Đang thực hiện',
-  TOPIC_COMPLETED: 'Hoàn thành',
-  REJECTED: 'Từ chối',
-}
+  SUBMIT: "Đã nộp",
+  TOPIC_PENDING: "Chờ duyệt",
+  APPROVED_1: "Duyệt lần 1",
+  APPROVED_2: "Duyệt lần 2",
+  IN_PROGRESS: "Đang thực hiện",
+  TOPIC_COMPLETED: "Hoàn thành",
+  REJECTED: "Từ chối",
+};
 
 export default function DepartmentTopicsPage() {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-  const [rejectReason, setRejectReason] = useState('')
-  const [rejectingTopicId, setRejectingTopicId] = useState<string | null>(null)
-
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [rejectReason, setRejectReason] = useState("");
+  const [rejectingTopicId, setRejectingTopicId] = useState<string | null>(null);
+  const semesterCode = useSemester();
   // Build filters for backend
   const buildFilters = () => {
-    const filters: any[] = []
+    const filters: any[] = [];
 
     // Search filter
     if (searchTerm.trim()) {
       filters.push({
         group: {
-          logic: 'OR',
+          logic: "OR",
           filters: [
             {
               condition: {
-                field: 'title',
-                operator: 'LIKE',
+                field: "title",
+                operator: "LIKE",
                 values: [searchTerm.trim()],
               },
             },
             {
               condition: {
-                field: 'id',
-                operator: 'LIKE',
+                field: "id",
+                operator: "LIKE",
                 values: [searchTerm.trim()],
               },
             },
           ],
         },
-      })
+      });
     }
 
     // Status filter
-    if (selectedStatus !== 'all') {
+    if (selectedStatus !== "all") {
       filters.push({
         condition: {
-          field: 'status',
-          operator: 'EQUAL',
+          field: "status",
+          operator: "EQUAL",
           values: [selectedStatus],
         },
-      })
+      });
     }
 
-    return filters
-  }
+    return filters;
+  };
 
   const { topics, total, loading, error, refetch } = useDepartmentTopics({
     pagination: {
       page: currentPage,
       pageSize,
-      sortBy: 'created_at',
+      sortBy: "created_at",
       descending: true,
     },
-    filters: buildFilters()
-  })
+    filters: buildFilters(),
+  });
 
-  const { approveTopicStage1, loading: approving } = useApproveTopicStage1()
-  const { rejectTopicStage1, loading: rejecting } = useRejectTopicStage1()
+  const { approveTopicStage1, loading: approving } = useApproveTopicStage1();
+  const { rejectTopicStage1, loading: rejecting } = useRejectTopicStage1();
 
   const handleApprove = async (topicId: string) => {
-    if (!confirm('Bạn có chắc muốn duyệt đề tài này?')) return
+    if (!confirm("Bạn có chắc muốn duyệt đề tài này?")) return;
 
     try {
       await approveTopicStage1({
-        variables: { id: topicId }
-      })
-      alert('Đã duyệt đề tài thành công!')
-      refetch()
+        variables: { id: topicId },
+      });
+      alert("Đã duyệt đề tài thành công!");
+      refetch();
     } catch (error) {
-      alert('Lỗi khi duyệt đề tài: ' + (error as Error).message)
+      alert("Lỗi khi duyệt đề tài: " + (error as Error).message);
     }
-  }
+  };
 
   const handleReject = async (topicId: string) => {
-    setRejectingTopicId(topicId)
-  }
+    setRejectingTopicId(topicId);
+  };
 
   const confirmReject = async () => {
-    if (!rejectingTopicId) return
+    if (!rejectingTopicId) return;
     if (!rejectReason.trim()) {
-      alert('Vui lòng nhập lý do từ chối')
-      return
+      alert("Vui lòng nhập lý do từ chối");
+      return;
     }
 
     try {
       await rejectTopicStage1({
         variables: {
           id: rejectingTopicId,
-          reason: rejectReason
-        }
-      })
-      alert('Đã từ chối đề tài!')
-      setRejectingTopicId(null)
-      setRejectReason('')
-      refetch()
+          reason: rejectReason,
+        },
+      });
+      alert("Đã từ chối đề tài!");
+      setRejectingTopicId(null);
+      setRejectReason("");
+      refetch();
     } catch (error) {
-      alert('Lỗi khi từ chối đề tài: ' + (error as Error).message)
+      alert("Lỗi khi từ chối đề tài: " + (error as Error).message);
     }
-  }
+  };
 
   const handleSearchChange = (search: string) => {
-    setSearchTerm(search)
-    setCurrentPage(1)
-  }
+    setSearchTerm(search);
+    setCurrentPage(1);
+  };
 
   const handleStatusChange = (status: string) => {
-    setSelectedStatus(status)
-    setCurrentPage(1)
-  }
+    setSelectedStatus(status);
+    setCurrentPage(1);
+  };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
+    setCurrentPage(page);
+  };
 
   const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
-    setCurrentPage(1)
-  }
+    setPageSize(size);
+    setCurrentPage(1);
+  };
 
   const handleRefresh = () => {
-    refetch()
-  }
+    refetch();
+  };
 
   const handleViewDetail = (topic: Topic) => {
-    const topicData = {
-      id: topic.id,
-      title: topic.title,
-      majorCode: topic.majorCode,
-      semesterCode: topic.semesterCode,
-      status: topic.status,
-      percentStage1: topic.percentStage1,
-      percentStage2: topic.percentStage2,
-      createdAt: topic.createdAt,
-      updatedAt: topic.updatedAt,
-      files: topic.files,
-      topicCouncils: topic.topicCouncils,
-      backUrl: '/department/topics'
-    }
-    sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
-    router.push(`/department/topics/${topic.id}`)
-  }
+    router.push(`/department/topics/${topic.id}`);
+  };
 
   if (error && !topics) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400">Lỗi: {error.message}</p>
       </div>
-    )
+    );
   }
+  const handleDownloadFile = async (fileId: string, filename: string) => {
+    try {
+      await downloadFile(fileId, semesterCode.currentSemester?.id || "", filename);
+    } catch (error) {
+      alert("Lỗi khi tải xuống file: " + (error as Error).message);
+    }
+  };
 
-  const totalPages = Math.ceil(total / pageSize)
+  const totalPages = Math.ceil(total / pageSize);
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -220,14 +224,20 @@ export default function DepartmentTopicsPage() {
           >
             <option value="all">Tất cả trạng thái</option>
             {Object.entries(STATUS_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
+              <option key={key} value={key}>
+                {label}
+              </option>
             ))}
           </select>
         </div>
 
         {/* Import Button */}
         <button
-          onClick={() => alert('Chức năng Import Excel sẽ được triển khai sau khi backend hoàn thiện')}
+          onClick={() =>
+            alert(
+              "Chức năng Import Excel sẽ được triển khai sau khi backend hoàn thiện"
+            )
+          }
           className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Import điểm từ Excel"
         >
@@ -237,7 +247,11 @@ export default function DepartmentTopicsPage() {
 
         {/* Export Button */}
         <button
-          onClick={() => alert('Chức năng Export Excel sẽ được triển khai sau khi backend hoàn thiện')}
+          onClick={() =>
+            alert(
+              "Chức năng Export Excel sẽ được triển khai sau khi backend hoàn thiện"
+            )
+          }
           className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Export điểm ra Excel"
         >
@@ -283,18 +297,21 @@ export default function DepartmentTopicsPage() {
                     <td colSpan={6} className="px-6 py-12 text-center">
                       <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <div className="text-gray-500 dark:text-gray-400">
-                        {searchTerm || selectedStatus !== 'all'
-                          ? 'Không tìm thấy đề tài nào'
-                          : 'Chưa có đề tài nào'}
+                        {searchTerm || selectedStatus !== "all"
+                          ? "Không tìm thấy đề tài nào"
+                          : "Chưa có đề tài nào"}
                       </div>
                     </td>
                   </tr>
                 ) : (
                   topics.map((topic: any) => (
-                    <tr key={topic.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                    <tr
+                      key={topic.id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                    >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                          {topic.id}
+                          {topic.id.slice(0, 8)}...
                         </span>
                       </td>
                       <td
@@ -325,19 +342,24 @@ export default function DepartmentTopicsPage() {
                       <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end gap-2">
                           {/* Download File */}
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              alert(`Download file cho đề tài "${topic.title}"\nAPI sẽ được triển khai sau`)
-                            }}
-                            className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
-                            title="Download file đề tài"
-                          >
-                            <Download className="w-4 h-4" />
-                          </button>
+                          {topic.files && topic.files.length > 0 && (
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDownloadFile(
+                                  topic.files[0].id,
+                                  topic.files[0].title
+                                );
+                              }}
+                              className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                              title="Download file đề tài"
+                            >
+                              <Download className="w-4 h-4" />
+                            </button>
+                          )}
 
                           {/* Approve - Only for TOPIC_PENDING */}
-                          {topic.status === 'TOPIC_PENDING' && (
+                          {topic.status === "TOPIC_PENDING" && (
                             <button
                               onClick={() => handleApprove(topic.id)}
                               disabled={approving}
@@ -407,8 +429,8 @@ export default function DepartmentTopicsPage() {
             <div className="flex gap-3 justify-end">
               <button
                 onClick={() => {
-                  setRejectingTopicId(null)
-                  setRejectReason('')
+                  setRejectingTopicId(null);
+                  setRejectReason("");
                 }}
                 className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
               >
@@ -419,12 +441,12 @@ export default function DepartmentTopicsPage() {
                 disabled={rejecting || !rejectReason.trim()}
                 className="px-4 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {rejecting ? 'Đang xử lý...' : 'Xác nhận từ chối'}
+                {rejecting ? "Đang xử lý..." : "Xác nhận từ chối"}
               </button>
             </div>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }

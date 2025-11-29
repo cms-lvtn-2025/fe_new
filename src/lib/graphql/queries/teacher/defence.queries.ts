@@ -75,6 +75,27 @@ export const GET_DEFENCE_DETAIL = gql`
               majorCode
               semesterCode
               timeStart
+              topicCouncils {
+                id
+                title
+                topicCode
+                councilCode
+                stage
+                timeStart
+                timeEnd
+                enrollments {
+                  id
+                  title
+                  studentCode
+                  topicCouncilCode
+                  student {
+                    id
+                    email
+                    username
+                    mssv
+                  }
+                }
+              }
             }
             teacher {
               id

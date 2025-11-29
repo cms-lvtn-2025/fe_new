@@ -87,24 +87,7 @@ export default function StudentThesisPage() {
   }
 
   const handleViewDetail = (enrollment: any) => {
-    const enrollmentData = {
-      id: enrollment.id,
-      studentCode: enrollment.studentCode,
-      topicCouncilCode: enrollment.topicCouncilCode,
-      midtermFile: enrollment.midtermFile,
-      finalFile: enrollment.finalFile,
-      topic: enrollment.topicCouncil?.topic,
-      topicCouncil: enrollment.topicCouncil,
-      student: enrollment.student,
-      gradeTopicCouncils: enrollment.gradeTopicCouncils,
-      gradeDefences: enrollment.gradeDefences,
-      midterm: enrollment.midterm,
-      final: enrollment.final,
-      createdAt: enrollment.createdAt,
-      updatedAt: enrollment.updatedAt,
-      backUrl: '/student/thesis'
-    }
-    sessionStorage.setItem('enrollmentDetailData', JSON.stringify(enrollmentData))
+    
     router.push(`/student/thesis/${enrollment.id}`)
   }
 
@@ -187,17 +170,10 @@ export default function StudentThesisPage() {
                     const topic = enrollment.topicCouncil?.topic
                     const topicCouncil = enrollment.topicCouncil
                     const supervisors = topicCouncil?.supervisors || []
-                    const gradeTopicCouncils = enrollment.gradeTopicCouncils || []
-
-                    // Calculate average midterm and final scores
-                    const midtermGrades = gradeTopicCouncils.filter((g: any) => g.midtermScore !== null && g.midtermScore !== undefined)
-                    const finalGrades = gradeTopicCouncils.filter((g: any) => g.finalScore !== null && g.finalScore !== undefined)
-                    const avgMidterm = midtermGrades.length > 0
-                      ? (midtermGrades.reduce((sum: number, g: any) => sum + g.midtermScore, 0) / midtermGrades.length).toFixed(2)
-                      : null
-                    const avgFinal = finalGrades.length > 0
-                      ? (finalGrades.reduce((sum: number, g: any) => sum + g.finalScore, 0) / finalGrades.length).toFixed(2)
-                      : null
+                    const avgMidterm = enrollment.midterm?.grade
+                    const avgFinal = enrollment.final?.finalGrade
+                    const timeStart = enrollment.topicCouncil?.council?.timeStart
+                    
 
                     return (
                       <tr key={enrollment.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
@@ -213,9 +189,7 @@ export default function StudentThesisPage() {
                           <span className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
                             {topic?.title || 'N/A'}
                           </span>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                            {topic?.major?.title || ''} • {topic?.semester?.title || ''}
-                          </div>
+                          
                         </td>
                         <td className="px-6 py-4">
                           {supervisors.length > 0 ? (
@@ -269,15 +243,15 @@ export default function StudentThesisPage() {
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {topicCouncil?.timeStart ? (
+                          {timeStart ? (
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="w-4 h-4 text-gray-400" />
                               <div>
                                 <div className="text-gray-900 dark:text-gray-100">
-                                  {new Date(topicCouncil.timeStart).toLocaleDateString('vi-VN')}
+                                  {new Date(timeStart).toLocaleDateString('vi-VN')}
                                 </div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(topicCouncil.timeStart).toLocaleTimeString('vi-VN', {
+                                  {new Date(timeStart).toLocaleTimeString('vi-VN', {
                                     hour: '2-digit',
                                     minute: '2-digit'
                                   })}

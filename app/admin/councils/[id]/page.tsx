@@ -446,29 +446,7 @@ export default function CouncilDetailPage() {
                             {/* Final Grades */}
                             {enrollment.final && (
                               <>
-                                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                      Điểm GVHD
-                                    </span>
-                                  </div>
-                                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                    {enrollment.final.supervisorGrade !== null ? enrollment.final.supervisorGrade : '--'}
-                                  </p>
-                                </div>
-
-                                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Award className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                      Điểm bộ môn
-                                    </span>
-                                  </div>
-                                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                    {enrollment.final.departmentGrade !== null ? enrollment.final.departmentGrade : '--'}
-                                  </p>
-                                </div>
+                
 
                                 <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded border border-green-300 dark:border-green-700">
                                   <div className="flex items-center gap-2 mb-1">
@@ -478,7 +456,7 @@ export default function CouncilDetailPage() {
                                     </span>
                                   </div>
                                   <p className="text-2xl font-bold text-green-900 dark:text-green-300">
-                                    {enrollment.final.finalGrade !== null ? enrollment.final.finalGrade : '--'}
+                                     {enrollment.final.supervisorGrade !== null ? enrollment.final.supervisorGrade : '--'}
                                   </p>
                                 </div>
                               </>

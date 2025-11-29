@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useMutation, useQuery } from '@apollo/client/react'
 import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
-import { GET_DEPARTMENT_COUNCIL_DETAIL } from '@/lib/graphql/queries/department'
+import { GET_DEPARTMENT_COUNCIL_DETAIL, GET_DEPARTMENT_TEACHERS, GET_DEPARTMENT_TOPICS_FOR_ADDCOUNCIL } from '@/lib/graphql/queries/department'
 import { ArrowLeft, Calendar, Clock, Users, BookOpen, User, Award, TrendingUp, Star, Plus, Trash2, UserPlus, X } from 'lucide-react'
 import { format } from 'date-fns'
 import { vi } from 'date-fns/locale'
@@ -12,6 +12,7 @@ import { ADD_DEFENCE_TO_COUNCIL, REMOVE_DEFENCE_FROM_COUNCIL, ASSIGN_TOPIC_TO_CO
 import { GET_LIST_TEACHERS } from '@/lib/graphql/queries/admin'
 import { GET_DEPARTMENT_TOPICS } from '@/lib/graphql/queries/department'
 import { toast } from '@/components/common/Toast'
+import { filter } from 'rxjs'
 
 // Định nghĩa các vị trí trong hội đồng
 const DEFENCE_POSITIONS = [
@@ -55,37 +56,6 @@ interface Council {
       student?: {
         username: string
       }
-      midterm?: {
-        id: string
-        grade: number
-        status: string
-      }
-      final?: {
-        id: string
-        supervisorGrade: number
-        departmentGrade: number
-        finalGrade: number
-        status: string
-      }
-      
-      gradeDefences?: Array<{
-        id: string
-        totalScore: number
-        note?: string
-        defence?: {
-          position: string
-          teacher?: {
-            username: string
-            email: string
-          }
-        }
-        criteria?: Array<{
-          id: string
-          name: string
-          score: number
-          maxScore: number
-        }>
-      }>
     }>
     supervisors?: Array<{
       id: string
@@ -162,18 +132,19 @@ export default function CouncilDetailPage() {
   const [removeTopic, { loading: removingTopic }] = useMutation(REMOVE_TOPIC_FROM_COUNCIL)
 
   // Query giáo viên có role TEACHER
-  const { data: teachersData } = useQuery(GET_LIST_TEACHERS, {
+  const { data: teachersData } = useQuery(GET_DEPARTMENT_TEACHERS, {
     variables: {
       search: {
         pagination: { page: 1, pageSize: 200 , sortBy: 'created_at', descending: true },
-        filters: [],
+        
       },
     },
     skip: !showAddMemberModal,
   })
 
+
   // Query topics để lấy topic councils
-  const { data: topicsData, refetch: refetchTopics } = useQuery(GET_DEPARTMENT_TOPICS, {
+  const { data: topicsData, refetch: refetchTopics } = useQuery(GET_DEPARTMENT_TOPICS_FOR_ADDCOUNCIL, {
     variables: {
       search: {
         pagination: { page: 1, pageSize: 200 , sortBy: 'created_at', descending: true },
@@ -183,13 +154,13 @@ export default function CouncilDetailPage() {
   })
 
   // Lọc giáo viên có role TEACHER
-  const allTeachers = (teachersData as any)?.affair?.teachers?.data || []
+  const allTeachers = (teachersData as any)?.department?.teachers?.data || []
   const teachersWithTeacherRole = allTeachers.filter((teacher: any) =>
     teacher.roles?.some((role: any) => role.role === 'TEACHER')
   )
 
   // Lấy tất cả topic councils chưa có councilCode từ topics
-  const allTopics = (topicsData as any)?.getDepartmentTopics?.data || []
+  const allTopics = (topicsData as any)?.department?.topics?.data || []
   const availableTopicCouncils: any[] = []
   allTopics.forEach((topic: any) => {
     topic.topicCouncils?.forEach((tc: any) => {
@@ -235,7 +206,7 @@ export default function CouncilDetailPage() {
       })
 
       // Cập nhật local state
-      const newDefence = (result.data as any)?.addDefenceToCouncil
+      const newDefence = (result.data as any)?.department.addDefence
       if (newDefence) {
         setCouncil({
           ...council,
@@ -259,7 +230,7 @@ export default function CouncilDetailPage() {
 
     try {
       await removeDefence({
-        variables: { search: createDetailSearch(defenceId) }
+        variables: { id: defenceId }
       })
 
       // Cập nhật local state
@@ -290,7 +261,7 @@ export default function CouncilDetailPage() {
         }
       })
 
-      const assignedTopic = (result.data as any)?.assignTopicToCouncil
+      const assignedTopic = (result.data as any)?.department.assignTopicToCouncil
       if (assignedTopic) {
         // Lấy thêm topic title từ availableTopicCouncils
         const fullTopicCouncil = availableTopicCouncils.find((tc: any) => tc.id === selectedTopicCouncil)
@@ -365,7 +336,7 @@ export default function CouncilDetailPage() {
     )
   }
 
-  if (error) {
+  if (error && !council) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -606,194 +577,6 @@ export default function CouncilDetailPage() {
                     </h3>
                   </button>
 
-                  {topicCouncil.enrollments && topicCouncil.enrollments.length > 0 && (
-                    <div className="mb-3 space-y-4">
-                      <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                        Sinh viên thực hiện:
-                      </p>
-                      {topicCouncil.enrollments.map((enrollment: any) => (
-                        <div
-                          key={enrollment.id}
-                          className="p-4 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600"
-                        >
-                          {/* Student Info */}
-                          <div className="flex items-center gap-2 mb-3">
-                            <Users className="w-4 h-4" />
-                            <button
-                              onClick={() => handleStudentClick(enrollment)}
-                              className="text-gray-900 dark:text-gray-100 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                            >
-                              {enrollment.student?.username || enrollment.studentCode}
-                            </button>
-                          </div>
-
-                          {/* Grades Section */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                            {/* Midterm Grade */}
-                            {enrollment.midterm && (
-                              <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                <div className="flex items-center gap-2 mb-1">
-                                  <TrendingUp className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                                  <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                    Điểm giữa kỳ
-                                  </span>
-                                </div>
-                                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                  {enrollment.midterm.grade !== null ? enrollment.midterm.grade : '--'}
-                                </p>
-                              </div>
-                            )}
-
-                            {/* Final Grades */}
-                            {enrollment.final && (
-                              <>
-                                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Star className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                      Điểm GVHD
-                                    </span>
-                                  </div>
-                                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                    {enrollment.final.supervisorGrade !== null ? enrollment.final.supervisorGrade : '--'}
-                                  </p>
-                                </div>
-
-                                <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Award className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-                                    <span className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                                      Điểm bộ môn
-                                    </span>
-                                  </div>
-                                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-                                    {enrollment.final.departmentGrade !== null ? enrollment.final.departmentGrade : '--'}
-                                  </p>
-                                </div>
-
-                                <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded border border-green-300 dark:border-green-700">
-                                  <div className="flex items-center gap-2 mb-1">
-                                    <Award className="w-4 h-4 text-green-600 dark:text-green-400" />
-                                    <span className="text-xs font-medium text-green-700 dark:text-green-400">
-                                      Điểm cuối kỳ
-                                    </span>
-                                  </div>
-                                  <p className="text-2xl font-bold text-green-900 dark:text-green-300">
-                                    {enrollment.final.finalGrade !== null ? enrollment.final.finalGrade : '--'}
-                                  </p>
-                                </div>
-                              </>
-                            )}
-
-                            {/* Grade Review */}
-                            
-                          </div>
-
-                          {/* Grade Defences (Council Grades) */}
-                          {enrollment.gradeDefences && enrollment.gradeDefences.length > 0 && (
-                            <div className="mt-4">
-                              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
-                                <Award className="w-5 h-5" />
-                                Điểm bảo vệ từ hội đồng
-                              </p>
-                              <div className="space-y-3">
-                                {enrollment.gradeDefences.map((gd: any) => (
-                                  <div
-                                    key={gd.id}
-                                    className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-300 dark:border-gray-600 shadow-sm"
-                                  >
-                                    {/* Header: Teacher Info + Total Score */}
-                                    <div className="flex items-start justify-between mb-3 pb-3 border-b border-gray-200 dark:border-gray-600">
-                                      <div className="flex-1">
-                                        <div className="flex items-center gap-2 mb-1">
-                                          <Users className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                                          {gd.defence?.teacher ? (
-                                            <button
-                                              onClick={() => handleTeacherClick(gd.defence.teacher)}
-                                              className="text-sm font-semibold text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
-                                            >
-                                              {gd.defence.teacher.username}
-                                            </button>
-                                          ) : (
-                                            <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                              N/A
-                                            </p>
-                                          )}
-                                        </div>
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
-                                          {gd.defence?.position === 'PRESIDENT'
-                                            ? 'Chủ tịch hội đồng'
-                                            : gd.defence?.position === 'SECRETARY'
-                                            ? 'Thư ký hội đồng'
-                                            : gd.defence?.position === 'REVIEWER'
-                                            ? 'Phản biện'
-                                            : 'Thành viên hội đồng'}
-                                        </p>
-                                        {gd.defence?.teacher?.email && (
-                                          <p className="text-xs text-gray-400 dark:text-gray-500 ml-6">
-                                            {gd.defence.teacher.email}
-                                          </p>
-                                        )}
-                                      </div>
-                                      <div className="text-right">
-                                        <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">Tổng điểm</p>
-                                        <span className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                                          {gd.totalScore !== null ? gd.totalScore.toFixed(2) : '--'}
-                                        </span>
-                                      </div>
-                                    </div>
-
-                                    {/* Criteria Breakdown */}
-                                    {gd.criteria && gd.criteria.length > 0 && (
-                                      <div className="mb-3">
-                                        <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">
-                                          Chi tiết tiêu chí chấm:
-                                        </p>
-                                        <div className="space-y-2">
-                                          {gd.criteria.map((criterion: any) => (
-                                            <div
-                                              key={criterion.id}
-                                              className="flex items-center justify-between p-2 bg-white dark:bg-gray-600 rounded"
-                                            >
-                                              <div className="flex-1">
-                                                <p className="text-xs font-medium text-gray-700 dark:text-gray-300">
-                                                  {criterion.name}
-                                                </p>
-                                              </div>
-                                              <div className="flex items-center gap-2">
-                                                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">
-                                                  {criterion.score}
-                                                </span>
-                                                <span className="text-xs text-gray-400 dark:text-gray-500">
-                                                  / {criterion.maxScore}
-                                                </span>
-                                              </div>
-                                            </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
-
-                                    {/* Notes */}
-                                    {gd.note && (
-                                      <div className="mt-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded">
-                                        <p className="text-xs font-medium text-yellow-800 dark:text-yellow-300 mb-1">
-                                          Ghi chú:
-                                        </p>
-                                        <p className="text-xs text-yellow-700 dark:text-yellow-400 italic">
-                                          {gd.note}
-                                        </p>
-                                      </div>
-                                    )}
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
 
                   {topicCouncil.supervisors && topicCouncil.supervisors.length > 0 && (
                     <div>

@@ -20,6 +20,41 @@ export const GET_DEPARTMENT_TOPICS = gql`
           majorCode
           semesterCode
           status
+          files {
+            id
+            title
+            file
+            status
+            table
+            option
+            tableId
+          }
+        }
+      }
+    }
+  }
+`
+
+export const GET_DEPARTMENT_TOPICS_FOR_ADDCOUNCIL = gql`
+  query GetDepartmentTopics($search: SearchRequestInput!) {
+    department {
+      topics(search: $search) {
+        total
+        data {
+          id
+          title
+          majorCode
+          semesterCode
+          status
+          topicCouncils {
+            id
+            title
+            stage
+            topicCode
+            councilCode
+            timeStart
+            timeEnd
+          }
         }
       }
     }

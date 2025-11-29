@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client"
+import { gql } from "@apollo/client";
 
 /**
  * Department Lecturer - Student Queries
@@ -18,6 +18,9 @@ export const GET_DEPARTMENT_STUDENTS = gql`
         data {
           id
           email
+          mssv
+          phone
+          gender
           username
           majorCode
           classCode
@@ -25,7 +28,7 @@ export const GET_DEPARTMENT_STUDENTS = gql`
       }
     }
   }
-`
+`;
 
 /**
  * Query để lấy chi tiết sinh viên (dùng students với filter theo ID)
@@ -39,8 +42,8 @@ export const GET_DEPARTMENT_STUDENT_DETAIL = gql`
         data {
           id
           email
-          phone
           username
+          phone
           gender
           majorCode
           classCode
@@ -48,36 +51,48 @@ export const GET_DEPARTMENT_STUDENT_DETAIL = gql`
           mssv
           createdAt
           updatedAt
-          enrollments {
+        }
+      }
+    }
+  }
+`;
+
+/**
+ * Query để lấy enrollments của một sinh viên cụ thể
+ */
+export const GET_STUDENT_ENROLLMENTS = gql`
+  query GetStudentEnrollments($search: SearchRequestInput!) {
+    department {
+      enrollments(search: $search) {
+        total
+        data {
+          id
+          title
+          studentCode
+          topicCouncilCode
+          finalCode
+          gradeReviewCode
+          midtermCode
+          createdAt
+          updatedAt
+          midterm {
             id
             title
-            studentCode
-            topicCouncilCode
-            finalCode
-            gradeReviewCode
-            midtermCode
-            createdAt
-            updatedAt
-            midterm {
-              id
-              title
-              grade
-              status
-              feedback
-            }
-            final {
-              id
-              title
-              supervisorGrade
-              departmentGrade
-              finalGrade
-              status
-              notes
-            }
-            
+            grade
+            status
+            feedback
+          }
+          final {
+            id
+            title
+            supervisorGrade
+            departmentGrade
+            finalGrade
+            status
+            notes
           }
         }
       }
     }
   }
-`
+`;

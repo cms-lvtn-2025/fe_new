@@ -22,6 +22,16 @@ export const GET_LIST_TEACHERS = gql`
           username
           gender
           majorCode
+          semesterCode
+          createdAt
+          updatedAt
+          roles {
+            id
+            title
+            role
+            semesterCode
+            activate
+          }
         }
       }
     }
@@ -46,6 +56,10 @@ export const GET_LIST_STUDENTS = gql`
           username
           majorCode
           classCode
+          semesterCode
+          createdAt
+          updatedAt
+          gender
         }
       }
     }

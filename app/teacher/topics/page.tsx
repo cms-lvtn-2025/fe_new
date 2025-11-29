@@ -1,134 +1,143 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { useMySupervisedTopicCouncils } from '@/lib/graphql/hooks'
-import { FileText, Users, Calendar, Upload, Download } from 'lucide-react'
-import { SearchBar } from '@/components/common/SearchBar'
-import { Pagination } from '@/components/common/Pagination'
-import { StatusBadge } from '@/components/common/StatusBadge'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useMySupervisedTopicCouncils } from "@/lib/graphql/hooks";
+import { FileText, Users, Calendar, Upload, Download } from "lucide-react";
+import { SearchBar } from "@/components/common/SearchBar";
+import { Pagination } from "@/components/common/Pagination";
+import { StatusBadge } from "@/components/common/StatusBadge";
+import { downloadFile } from "@/lib/api/file";
+import { useSemester } from "@/lib/contexts/semester-context";
 
 const STATUS_LABELS: Record<string, string> = {
-  SUBMIT: 'Đã nộp',
-  TOPIC_PENDING: 'Chờ duyệt',
-  APPROVED_1: 'Duyệt lần 1',
-  APPROVED_2: 'Duyệt lần 2',
-  IN_PROGRESS: 'Đang thực hiện',
-  TOPIC_COMPLETED: 'Hoàn thành',
-  REJECTED: 'Từ chối',
-}
+  SUBMIT: "Đã nộp",
+  TOPIC_PENDING: "Chờ duyệt",
+  APPROVED_1: "Duyệt lần 1",
+  APPROVED_2: "Duyệt lần 2",
+  IN_PROGRESS: "Đang thực hiện",
+  TOPIC_COMPLETED: "Hoàn thành",
+  REJECTED: "Từ chối",
+};
 
 const STAGE_LABELS: Record<string, string> = {
-  STAGE_1: 'Giai đoạn 1',
-  STAGE_2: 'Giai đoạn 2',
-}
+  STAGE_1: "Giai đoạn 1",
+  STAGE_2: "Giai đoạn 2",
+};
 
 export default function TeacherTopicsPage() {
-  const router = useRouter()
-  const [searchTerm, setSearchTerm] = useState('')
-  const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [currentPage, setCurrentPage] = useState(1)
-  const [pageSize, setPageSize] = useState(10)
-
+  const router = useRouter();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState<string>("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const semesterCode = useSemester();
   const handleImportExcel = () => {
-    alert('Chức năng Import Excel điểm sẽ được triển khai sau khi backend hoàn thiện')
-  }
+    alert(
+      "Chức năng Import Excel điểm sẽ được triển khai sau khi backend hoàn thiện"
+    );
+  };
 
   const handleExportExcel = () => {
-    alert('Chức năng Export Excel điểm sẽ được triển khai sau khi backend hoàn thiện')
-  }
+    alert(
+      "Chức năng Export Excel điểm sẽ được triển khai sau khi backend hoàn thiện"
+    );
+  };
 
   // Build filters for backend
   const buildFilters = () => {
-    const filters: any[] = []
+    const filters: any[] = [];
 
     // Search filter - search in topic title or id
     if (searchTerm.trim()) {
       filters.push({
         group: {
-          logic: 'OR',
+          logic: "OR",
           filters: [
             {
               condition: {
-                field: 'topicCouncil.topic.title',
-                operator: 'LIKE',
+                field: "title",
+                operator: "LIKE",
                 values: [searchTerm.trim()],
               },
             },
             {
               condition: {
-                field: 'topicCouncil.topic.id',
-                operator: 'LIKE',
+                field: "id",
+                operator: "LIKE",
                 values: [searchTerm.trim()],
               },
             },
           ],
         },
-      })
+      });
     }
 
-    // Status filter
-    if (selectedStatus !== 'all') {
-      filters.push({
-        condition: {
-          field: 'topicCouncil.topic.status',
-          operator: 'EQUAL',
-          values: [selectedStatus],
-        },
-      })
-    }
+    return filters;
+  };
 
-    return filters
-  }
+  const { topicCouncils, total, loading, error, refetch } =
+    useMySupervisedTopicCouncils({
+      pagination: {
+        page: currentPage,
+        pageSize,
+        sortBy: "created_at",
+        descending: true,
+      },
+      filters: buildFilters(),
+    });
 
-  const { topicCouncils, total, loading, error, refetch } = useMySupervisedTopicCouncils({
-    pagination: {
-      page: currentPage,
-      pageSize
-    , sortBy: 'created_at', descending: true },
-    filters: buildFilters()
-  })
-
-  const totalPages = Math.ceil(total / pageSize)
+  const totalPages = Math.ceil(total / pageSize);
 
   const handleSearchChange = (search: string) => {
-    setSearchTerm(search)
-    setCurrentPage(1)
-  }
+    setSearchTerm(search);
+    setCurrentPage(1);
+  };
 
   const handleStatusChange = (status: string) => {
-    setSelectedStatus(status)
-    setCurrentPage(1)
-  }
+    setSelectedStatus(status);
+    setCurrentPage(1);
+  };
 
   const handlePageChange = (page: number) => {
-    setCurrentPage(page)
-  }
+    setCurrentPage(page);
+  };
 
   const handlePageSizeChange = (size: number) => {
-    setPageSize(size)
-    setCurrentPage(1)
-  }
+    setPageSize(size);
+    setCurrentPage(1);
+  };
 
   const handleRefresh = () => {
-    refetch()
-  }
+    refetch();
+  };
+
+  const handleDownloadFile = async (fileId: string, filename: string) => {
+    try {
+      await downloadFile(fileId, semesterCode.currentSemester?.id || "", filename);
+    } catch (error) {
+      alert("Lỗi khi tải xuống file: " + (error as Error).message);
+    }
+  };
 
   const handleViewDetail = (topicCouncil: any) => {
     const topicCouncilData = {
       ...topicCouncil,
-      backUrl: '/teacher/topics'
-    }
-    sessionStorage.setItem('topicCouncilDetailData', JSON.stringify(topicCouncilData))
-    router.push(`/teacher/topics/${topicCouncil.id}`)
-  }
+      backUrl: "/teacher/topics",
+    };
+    sessionStorage.setItem(
+      "topicCouncilDetailData",
+      JSON.stringify(topicCouncilData)
+    );
+    router.push(`/teacher/topics/${topicCouncil.id}`);
+  };
 
   if (error) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400">Lỗi: {error.message}</p>
       </div>
-    )
+    );
   }
 
   return (
@@ -150,19 +159,7 @@ export default function TeacherTopicsPage() {
         placeholder="Tìm kiếm theo tên đề tài hoặc mã..."
         className="mb-6"
       >
-        {/* Status Filter */}
-        <div className="relative">
-          <select
-            value={selectedStatus}
-            onChange={(e) => handleStatusChange(e.target.value)}
-            className="pl-3 pr-8 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent appearance-none cursor-pointer"
-          >
-            <option value="all">Tất cả trạng thái</option>
-            {Object.entries(STATUS_LABELS).map(([key, label]) => (
-              <option key={key} value={key}>{label}</option>
-            ))}
-          </select>
-        </div>
+        
 
         {/* Import Button */}
         <button
@@ -225,41 +222,49 @@ export default function TeacherTopicsPage() {
                     <td colSpan={7} className="px-6 py-12 text-center">
                       <FileText className="w-12 h-12 text-gray-400 mx-auto mb-4" />
                       <div className="text-gray-500 dark:text-gray-400">
-                        {searchTerm || selectedStatus !== 'all'
-                          ? 'Không tìm thấy đề tài nào'
-                          : 'Bạn chưa hướng dẫn đề tài nào'}
+                        {searchTerm || selectedStatus !== "all"
+                          ? "Không tìm thấy đề tài nào"
+                          : "Bạn chưa hướng dẫn đề tài nào"}
                       </div>
                     </td>
                   </tr>
                 ) : (
                   topicCouncils.map((tc: any) => {
-                    const topic = tc.topic
-                    const enrollments = tc.enrollments || []
-
+                    const topic = tc.topic;
+                    const enrollments = tc.enrollments || [];
+                    const council = tc.council;
                     return (
-                      <tr key={tc.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
+                      <tr
+                        key={tc.id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700"
+                      >
                         <td
                           className="px-6 py-4 cursor-pointer"
                           onClick={() => handleViewDetail(tc)}
                         >
                           <span className="text-sm font-medium text-blue-600 dark:text-blue-400 hover:underline">
-                            {topic?.title || 'N/A'}
+                            {topic?.title || "N/A"}
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className="px-2 py-1 bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200 text-xs rounded">
-                            {STAGE_LABELS[tc.stage] || tc.stage || '-'}
+                            {STAGE_LABELS[tc.stage] || tc.stage || "-"}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           {enrollments.length > 0 ? (
                             <div className="space-y-1">
                               {enrollments.slice(0, 3).map((e: any) => (
-                                <div key={e.id} className="flex items-center gap-2 text-sm">
+                                <div
+                                  key={e.id}
+                                  className="flex items-center gap-2 text-sm"
+                                >
                                   <span className="font-mono text-gray-900 dark:text-gray-100">
-                                    {e.studentCode}
+                                    {e.student.mssv}
                                   </span>
-                                  <span className="text-gray-500 dark:text-gray-400">-</span>
+                                  <span className="text-gray-500 dark:text-gray-400">
+                                    -
+                                  </span>
                                   <span className="text-gray-600 dark:text-gray-300">
                                     {e.student?.username}
                                   </span>
@@ -272,13 +277,19 @@ export default function TeacherTopicsPage() {
                               )}
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-400 dark:text-gray-500">Chưa có sinh viên</span>
+                            <span className="text-sm text-gray-400 dark:text-gray-500">
+                              Chưa có sinh viên
+                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <StatusBadge
-                            status={topic?.status || 'UNKNOWN'}
-                            label={STATUS_LABELS[topic?.status] || topic?.status || 'N/A'}
+                            status={topic?.status || "UNKNOWN"}
+                            label={
+                              STATUS_LABELS[topic?.status] ||
+                              topic?.status ||
+                              "N/A"
+                            }
                           />
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
@@ -288,40 +299,47 @@ export default function TeacherTopicsPage() {
                           </div>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          {tc?.timeStart ? (
+                          {council?.timeStart ? (
                             <div className="flex items-center gap-2 text-sm">
                               <Calendar className="w-4 h-4 text-gray-400" />
                               <div>
                                 <div className="text-gray-900 dark:text-gray-100">
-                                  {new Date(tc.timeStart).toLocaleDateString('vi-VN')}
+                                  {new Date(council.timeStart).toLocaleDateString(
+                                    "vi-VN"
+                                  )}
                                 </div>
                                 <div className="text-xs text-gray-500 dark:text-gray-400">
-                                  {new Date(tc.timeStart).toLocaleTimeString('vi-VN', {
-                                    hour: '2-digit',
-                                    minute: '2-digit'
-                                  })}
+                                  {new Date(council.timeStart).toLocaleTimeString(
+                                    "vi-VN",
+                                    {
+                                      hour: "2-digit",
+                                      minute: "2-digit",
+                                    }
+                                  )}
                                 </div>
                               </div>
                             </div>
                           ) : (
-                            <span className="text-sm text-gray-400 dark:text-gray-500">Chưa có lịch</span>
+                            <span className="text-sm text-gray-400 dark:text-gray-500">
+                              Chưa có lịch
+                            </span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-center">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              alert(`Download file cho đề tài "${topic?.title}"\nAPI sẽ được triển khai sau`)
-                            }}
-                            className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors"
-                            title="Download file đề tài"
-                          >
-                            <Download className="w-4 h-4" />
-                            File
-                          </button>
+                          {topic.files && topic.files.length > 0 && (
+                            <button
+                              onClick={() =>
+                                handleDownloadFile(topic.files[0].id, topic.files[0].title)
+                              }
+                              className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-600 hover:bg-purple-700 text-white rounded transition-colors"
+                            >
+                              <Download className="w-3 h-3" />
+                              Tải xuống
+                            </button>
+                          )}
                         </td>
                       </tr>
-                    )
+                    );
                   })
                 )}
               </tbody>
@@ -342,5 +360,5 @@ export default function TeacherTopicsPage() {
         />
       )}
     </div>
-  )
+  );
 }

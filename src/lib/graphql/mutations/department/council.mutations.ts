@@ -50,7 +50,7 @@ export const UPDATE_DEPARTMENT_COUNCIL = gql`
 export const ADD_DEFENCE_TO_COUNCIL = gql`
   mutation AddDefenceToCouncil($input: CreateDefenceInput!) {
     department {
-      addDefenceToCouncil(input: $input) {
+      addDefence(input: $input) {
         id
         title
         councilCode
@@ -75,7 +75,7 @@ export const ADD_DEFENCE_TO_COUNCIL = gql`
 export const REMOVE_DEFENCE_FROM_COUNCIL = gql`
   mutation RemoveDefenceFromCouncil($id: ID!) {
     department {
-      removeDefenceFromCouncil(id: $id)
+      removeDefence(id: $id) 
     }
   }
 `

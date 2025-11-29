@@ -2,13 +2,15 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery } from '@apollo/client/react'
+import { useQuery, useLazyQuery } from '@apollo/client/react'
 import { GET_LIST_STUDENTS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { Plus, Pencil, Trash2, Search, RefreshCw, Upload, Download, Filter, Eye } from 'lucide-react'
 import { StudentFormDialog } from './student-form-dialog'
 import { DeleteStudentDialog } from './delete-student-dialog'
+import { exportStudents } from '@/lib/utils/export'
+import { uploadFileExcel } from '@/lib/api/file'
 
-interface Student {
+export interface Student {
   id: string
   email: string
   username: string
@@ -59,7 +61,7 @@ export function StudentManagement() {
     if (selectedSemester !== 'all') {
       filters.push({
         condition: {
-          field: 'semesterCode',
+          field: 'semester_code',
           operator: 'EQUAL',
           values: [selectedSemester],
         },
@@ -106,7 +108,7 @@ export function StudentManagement() {
     if (selectedClass !== 'all') {
       filters.push({
         condition: {
-          field: 'classCode',
+          field: 'class_code',
           operator: 'EQUAL',
           values: [selectedClass],
         },
@@ -117,7 +119,7 @@ export function StudentManagement() {
     if (selectedMajor !== 'all') {
       filters.push({
         condition: {
-          field: 'majorCode',
+          field: 'major_code',
           operator: 'EQUAL',
           values: [selectedMajor],
         },
@@ -205,14 +207,37 @@ export function StudentManagement() {
     setCurrentPage(1)
   }
 
-  const handleImport = () => {
+  const handleImport = (file: File, semesterCode: string) => {
     // TODO: Implement import dialog
-    alert('Import Excel - Backend sẽ xử lý')
+    try {
+      uploadFileExcel(
+        file,
+        semesterCode === 'all' ? '' : semesterCode,
+        'student-for-affair',
+        'Danh sách sinh viên'
+      ).then(() => {
+        alert('Upload file thành công (giả lập)')
+        refetch()
+      }).catch((error) => {
+        alert('Lỗi khi upload file: ' + error.message)
+      })
+    } catch (error) {
+      alert('Lỗi khi upload file: ' + (error as Error).message)
+    }
   }
 
-  const handleExport = () => {
-    // TODO: Implement export
-    alert('Export Excel - Backend sẽ xử lý')
+
+  const handleExport = async (allStudents: Student[]) => {
+    try {      
+      if (allStudents.length === 0) {
+        alert('Không có dữ liệu để xuất')
+        return
+      }
+
+      exportStudents(allStudents)
+    } catch (error) {
+      alert('Lỗi khi xuất dữ liệu: ' + (error as Error).message)
+    }
   }
 
   if (loading) {
@@ -305,7 +330,22 @@ export function StudentManagement() {
 
         {/* Import Button */}
         <button
-          onClick={handleImport}
+          onClick={() => {
+            const input = document.createElement('input')
+            input.type = 'file'
+            input.accept = '.xlsx,.xls'
+            input.onchange = (e) => {
+              const target = e.target as HTMLInputElement
+              if (target.files && target.files.length > 0 && selectedSemester !== 'all') {
+                handleImport(target.files[0], selectedSemester)
+              }
+
+              if (selectedSemester === 'all') {
+                alert('Vui lòng chọn học kỳ trước khi import')
+              }
+            }
+            input.click()
+          }}
           className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Upload className="w-5 h-5" />
@@ -314,7 +354,7 @@ export function StudentManagement() {
 
         {/* Export Button */}
         <button
-          onClick={handleExport}
+          onClick={() => handleExport(students)}
           className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Download className="w-5 h-5" />

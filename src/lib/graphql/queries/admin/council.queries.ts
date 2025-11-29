@@ -1,4 +1,4 @@
-import { gql } from "@apollo/client"
+import { gql } from "@apollo/client";
 
 /**
  * Admin (Affair) - Council Queries
@@ -38,7 +38,7 @@ export const GET_ALL_COUNCILS = gql`
       }
     }
   }
-`
+`;
 
 /**
  * Query để lấy chi tiết council (dùng councils với filter theo ID)
@@ -113,7 +113,7 @@ export const GET_COUNCIL_DETAIL = gql`
                 status
                 notes
               }
-              
+
               gradeDefences {
                 id
                 totalScore
@@ -149,7 +149,7 @@ export const GET_COUNCIL_DETAIL = gql`
       }
     }
   }
-`
+`;
 
 /**
  * Query để lấy danh sách defences theo council
@@ -186,7 +186,7 @@ export const GET_DEFENCES_BY_COUNCIL = gql`
       }
     }
   }
-`
+`;
 
 /**
  * Query để lấy lịch bảo vệ cho calendar view
@@ -214,15 +214,6 @@ export const GET_DEFENCE_SCHEDULE = gql`
               username
               email
             }
-            gradeDefences {
-              id
-              defenceCode
-              enrollmentCode
-              note
-              totalScore
-              createdAt
-              updatedAt
-            }
           }
           topicCouncils {
             id
@@ -244,42 +235,8 @@ export const GET_DEFENCE_SCHEDULE = gql`
                 username
                 email
               }
-              midterm {
-                id
-                grade
-                status
-                feedback
-              }
-              final {
-                id
-                supervisorGrade
-                departmentGrade
-                finalGrade
-                status
-                notes
-              }
-              
-              gradeDefences {
-              id
-              totalScore
-              note
-              defence {
-                id
-                position
-                teacher {
-                  id
-                  username
-                  email
-                }
-              }
-              criteria {
-                id
-                name
-                score
-                maxScore
-              }
             }
-            }
+
             supervisors {
               id
               teacherSupervisorCode
@@ -294,4 +251,104 @@ export const GET_DEFENCE_SCHEDULE = gql`
       }
     }
   }
-`
+`;
+
+export const GET_DEFENCE_SCHEDULE_EXPORT_EXCEL = gql`
+  query GetDefenceSchedule($search: SearchRequestInput!) {
+    affair {
+      councils(search: $search) {
+        total
+        data {
+          title
+          major {
+            title
+          }
+          semester {
+            title
+          }
+          timeStart
+          defences {
+            title
+            position
+            teacher {
+              username
+              email
+              msgv
+            }
+            gradeDefences {
+              totalScore
+              note
+              enrollment {
+                student {
+                  id
+                  mssv
+                }
+              }
+              criteria {
+                name
+                score
+                maxScore
+              }
+            }
+          }
+          topicCouncils {
+            stage
+            timeStart
+            timeEnd
+            topic {
+              title
+            }
+            enrollments {
+              title
+              student {
+                id
+                username
+                email
+                mssv
+              }
+              final {
+                supervisorGrade
+                departmentGrade
+                finalGrade
+                status
+              }
+              midterm {
+                grade
+                status
+              }
+            }
+
+            supervisors {
+              teacher {
+                id
+                username
+                email
+                msgv
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+`;
+
+export const GET_COUNCILS = gql`
+  query GetDefenceSchedule($search: SearchRequestInput!) {
+    affair {
+      councils(search: $search) {
+        total
+        data {
+          id
+          title
+          majorCode
+          semesterCode
+          timeStart
+          topicCouncils {
+            id
+          }
+        }
+      }
+    }
+  }
+`;

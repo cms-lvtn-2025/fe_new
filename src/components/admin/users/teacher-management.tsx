@@ -2,13 +2,15 @@
 
 import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuery } from '@apollo/client/react'
+import { useQuery, useLazyQuery } from '@apollo/client/react'
 import { GET_LIST_TEACHERS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { Plus, Pencil, Trash2, Search, RefreshCw, Upload, Download, Filter, Eye } from 'lucide-react'
 import { TeacherFormDialog } from './teacher-form-dialog'
 import { DeleteTeacherDialog } from './delete-teacher-dialog'
+import { exportTeachers } from '@/lib/utils/export'
+import { uploadFileExcel } from '@/lib/api/file'
 
-interface Teacher {
+export interface Teacher {
   id: string
   email: string
   msgv: string
@@ -57,7 +59,7 @@ export function TeacherManagement() {
     if (selectedSemester !== 'all') {
       filters.push({
         condition: {
-          field: 'semesterCode',
+          field: 'semester_code',
           operator: 'EQUAL',
           values: [selectedSemester],
         },
@@ -79,7 +81,7 @@ export function TeacherManagement() {
     if (selectedMajor !== 'all') {
       filters.push({
         condition: {
-          field: 'majorCode',
+          field: 'major_code',
           operator: 'EQUAL',
           values: [selectedMajor],
         },
@@ -123,6 +125,8 @@ export function TeacherManagement() {
   const allTeachers: Teacher[] = (allData as any)?.affair?.teachers?.data || []
   const majors = Array.from(new Set(allTeachers.map(t => t.majorCode))).filter(Boolean)
 
+  // Lazy query for export
+
   const handleRefresh = () => {
     refetch()
   }
@@ -154,14 +158,38 @@ export function TeacherManagement() {
     setCurrentPage(1)
   }
 
-  const handleImport = () => {
-    // TODO: Implement import dialog
-    alert('Import Excel - Backend sẽ xử lý')
-  }
+  const handleImport = (file: File, semesterCode: string) => {
+      // TODO: Implement import dialog
+      try {
+        uploadFileExcel(
+          file,
+          semesterCode === 'all' ? '' : semesterCode,
+          'teacher-for-affair',
+          'Danh sách giảng viên'
+        ).then(() => {
+          alert('Upload file thành công (giả lập)')
+          refetch()
+        }).catch((error) => {
+          alert('Lỗi khi upload file: ' + error.message)
+        })
+      } catch (error) {
+        alert('Lỗi khi upload file: ' + (error as Error).message)
+      }
+    }
 
-  const handleExport = () => {
-    // TODO: Implement export
-    alert('Export Excel - Backend sẽ xử lý')
+  const handleExport = async (allTeachers: Teacher[]) => {
+    try {
+      
+      
+      if (allTeachers.length === 0) {
+        alert('Không có dữ liệu để xuất')
+        return
+      }
+
+      exportTeachers(allTeachers)
+    } catch (error) {
+      alert('Lỗi khi xuất dữ liệu: ' + (error as Error).message)
+    }
   }
 
   if (loading) {
@@ -240,7 +268,20 @@ export function TeacherManagement() {
 
         {/* Import Button */}
         <button
-          onClick={handleImport}
+          onClick={() => {
+            const input = document.createElement('input')
+            input.type = 'file'
+            input.accept = '.xlsx, .xls'
+            input.onchange = (e: any) => {
+              const target = e.target as HTMLInputElement
+              if (target.files && target.files.length > 0 && selectedSemester !== 'all') {
+                handleImport(target.files[0], selectedSemester)
+              } else {
+                alert('Vui lòng chọn học kỳ trước khi import')
+              }
+            }
+            input.click()
+          }}
           className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Upload className="w-5 h-5" />
@@ -249,7 +290,7 @@ export function TeacherManagement() {
 
         {/* Export Button */}
         <button
-          onClick={handleExport}
+          onClick={() => handleExport(teachers)}
           className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Download className="w-5 h-5" />
@@ -333,7 +374,7 @@ export function TeacherManagement() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm text-gray-500 dark:text-gray-400">
-                        {teacher.gender === 'male' ? 'Nam' : teacher.gender === 'female' ? 'Nữ' : 'Khác'}
+                        {teacher.gender === 'MALE' ? 'Nam' : teacher.gender === 'FEMALE' ? 'Nữ' : 'Khác'}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

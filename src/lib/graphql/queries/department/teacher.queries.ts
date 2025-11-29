@@ -19,6 +19,7 @@ export const GET_DEPARTMENT_TEACHERS = gql`
           email
           username
           gender
+          msgv
           majorCode
           semesterCode
           createdAt

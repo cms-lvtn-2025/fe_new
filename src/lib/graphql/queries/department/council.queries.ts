@@ -97,41 +97,6 @@ export const GET_DEPARTMENT_COUNCIL_DETAIL = gql`
                 username
                 email
               }
-              midterm {
-                id
-                grade
-                status
-                feedback
-              }
-              final {
-                id
-                supervisorGrade
-                departmentGrade
-                finalGrade
-                status
-                notes
-              }
-              
-              gradeDefences {
-                id
-                totalScore
-                note
-                defence {
-                  id
-                  position
-                  teacher {
-                    id
-                    username
-                    email
-                  }
-                }
-                criteria {
-                  id
-                  name
-                  score
-                  maxScore
-                }
-              }
             }
             supervisors {
               id

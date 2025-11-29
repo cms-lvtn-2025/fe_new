@@ -208,7 +208,7 @@ export function GradeDefenceDialog({
             },
           },
         })
-        gradeDefenceId = (result.data as any)?.createGradeDefence?.id
+        gradeDefenceId = (result.data as any)?.teacher?.council?.createGradeDefence?.id
       } else {
         // Update existing
         await updateGradeDefence({

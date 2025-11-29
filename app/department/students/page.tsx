@@ -90,18 +90,6 @@ export default function DepartmentStudentsPage() {
   }
 
   const handleViewDetail = (student: any) => {
-    const studentData = {
-      id: student.id,
-      username: student.username,
-      email: student.email,
-      phone: student.phone,
-      gender: student.gender,
-      classCode: student.classCode,
-      createdAt: student.createdAt,
-      updatedAt: student.updatedAt,
-      backUrl: '/department/students'
-    }
-    sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
     router.push(`/department/students/${student.id}`)
   }
 
@@ -182,7 +170,7 @@ export default function DepartmentStudentsPage() {
                   <tr key={student.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {student.id}
+                        {student.mssv}
                       </span>
                     </td>
                     <td

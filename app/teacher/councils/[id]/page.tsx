@@ -113,7 +113,31 @@ export default function TeacherCouncilDetailPage() {
 
   const council = defenceData.council
   const gradeDefences = defenceData.gradeDefences || []
-  const gradedCount = gradeDefences.filter((g: any) => g.totalScore !== null && g.totalScore !== undefined).length
+  const topicCouncils = council?.topicCouncils || []
+
+  // Lấy tất cả enrollments từ topicCouncils
+  const allEnrollments = topicCouncils.flatMap((tc: any) =>
+    (tc.enrollments || []).map((enrollment: any) => ({
+      ...enrollment,
+      topicCouncilTitle: tc.title,
+      topicCouncilStage: tc.stage,
+    }))
+  )
+
+  // Tạo map để tra cứu gradeDefence theo enrollmentCode
+  const gradeDefenceMap = new Map(
+    gradeDefences.map((gd: any) => [gd.enrollmentCode, gd])
+  )
+
+  // Kết hợp enrollments với gradeDefences
+  const studentsWithGrades = allEnrollments.map((enrollment: any) => ({
+    enrollment,
+    gradeDefence: gradeDefenceMap.get(enrollment.id) || null,
+  }))
+
+  const gradedCount = studentsWithGrades.filter((s: any) =>
+    s.gradeDefence?.totalScore !== null && s.gradeDefence?.totalScore !== undefined
+  ).length
 
   return (
     <div className="max-w-7xl mx-auto">
@@ -144,7 +168,7 @@ export default function TeacherCouncilDetailPage() {
               </span>
               <span className="flex items-center gap-1">
                 <Award className="w-4 h-4" />
-                Đã chấm: {gradedCount}/{gradeDefences.length}
+                Đã chấm: {gradedCount}/{studentsWithGrades.length}
               </span>
             </div>
           </div>
@@ -177,23 +201,24 @@ export default function TeacherCouncilDetailPage() {
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-                Danh sách sinh viên cần chấm ({gradeDefences.length})
+                Danh sách sinh viên cần chấm ({studentsWithGrades.length})
               </h2>
             </div>
-            {gradeDefences.length === 0 ? (
+            {studentsWithGrades.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-                <p className="text-gray-500 dark:text-gray-400">Chưa có sinh viên nào</p>
+                <p className="text-gray-500 dark:text-gray-400">Chưa có sinh viên nào trong hội đồng</p>
               </div>
             ) : (
               <div className="space-y-4">
-                {gradeDefences.map((gradeDefence: any) => {
-                  const hasScore = gradeDefence.totalScore !== null && gradeDefence.totalScore !== undefined
-                  const criteria = gradeDefence.criteria || []
+                {studentsWithGrades.map((item: any, index: number) => {
+                  const { enrollment, gradeDefence } = item
+                  const hasScore = gradeDefence?.totalScore !== null && gradeDefence?.totalScore !== undefined
+                  const criteria = gradeDefence?.criteria || []
 
                   return (
                     <div
-                      key={gradeDefence.id}
+                      key={enrollment.id || index}
                       className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
                       <div className="flex items-start justify-between mb-3">
@@ -207,22 +232,23 @@ export default function TeacherCouncilDetailPage() {
                           </div>
                           <div className="flex-1">
                             <h3 className="font-medium text-gray-900 dark:text-gray-100">
-                              Sinh viên: {gradeDefence.enrollment?.student?.username || 'N/A'}
+                              {enrollment.student?.username || 'N/A'}
                             </h3>
-                            {gradeDefence.note && (
-                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                {gradeDefence.note}
-                              </p>
-                            )}
-                            {gradeDefence.enrollment?.student?.mssv && (
-                              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-mono">
-                                MSSV: {gradeDefence.enrollment.student.mssv}
+                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1 font-mono">
+                              MSSV: {enrollment.student?.mssv || enrollment.studentCode}
+                            </p>
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                              {enrollment.title}
+                            </p>
+                            {gradeDefence?.note && (
+                              <p className="text-sm text-gray-600 dark:text-gray-400 mt-2 italic">
+                                📝 {gradeDefence.note}
                               </p>
                             )}
                           </div>
                         </div>
                         <button
-                          onClick={() => handleGradeStudent(gradeDefence)}
+                          onClick={() => handleGradeStudent(gradeDefence || { enrollmentCode: enrollment.id, defenceCode: defenceData.id })}
                           className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
                         >
                           <Edit className="w-4 h-4" />
@@ -251,13 +277,13 @@ export default function TeacherCouncilDetailPage() {
                             <h4 className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
                               Chi tiết tiêu chí
                             </h4>
-                            {criteria.map((criterion: any, index: number) => (
+                            {criteria.map((criterion: any, idx: number) => (
                               <div
-                                key={criterion.id || index}
+                                key={criterion.id || idx}
                                 className="flex items-center justify-between text-sm bg-gray-50 dark:bg-gray-800 rounded px-3 py-2"
                               >
                                 <span className="text-gray-700 dark:text-gray-300">
-                                  {criterion.name || `Tiêu chí ${index + 1}`}
+                                  {criterion.name || `Tiêu chí ${idx + 1}`}
                                 </span>
                                 <span className="font-medium text-gray-900 dark:text-gray-100">
                                   {criterion.score !== null && criterion.score !== undefined

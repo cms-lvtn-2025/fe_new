@@ -31,6 +31,9 @@ export const GET_MY_ENROLLMENTS = gql`
                 username
               }
             }
+            council {
+              timeStart
+            }
           }
           midterm {
             id
@@ -102,6 +105,15 @@ export const GET_MY_ENROLLMENT_DETAIL = gql`
             grade
             status
             feedback
+            files {
+              id
+              title
+              file
+              status
+              table
+              option
+              tableId
+            }
           }
           final {
             id
@@ -111,6 +123,15 @@ export const GET_MY_ENROLLMENT_DETAIL = gql`
             finalGrade
             status
             notes
+            files {
+              id
+              title
+              file
+              status
+              table
+              option
+              tableId
+            }
           }
           
           gradeDefences {

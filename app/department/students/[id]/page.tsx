@@ -4,49 +4,49 @@ import React from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { useQuery } from '@apollo/client/react'
 import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
-import { GET_DEPARTMENT_STUDENT_DETAIL } from '@/lib/graphql/queries/department'
+import { GET_DEPARTMENT_STUDENT_DETAIL, GET_STUDENT_ENROLLMENTS } from '@/lib/graphql/queries/department'
 import { ArrowLeft, Mail, Phone, BookOpen, Award, Calendar, User } from 'lucide-react'
+
+interface Enrollment {
+  id: string
+  title: string
+  studentCode: string
+  topicCouncilCode: string
+  finalCode?: string
+  gradeReviewCode?: string
+  midtermCode?: string
+  createdAt: string
+  updatedAt: string
+  midterm?: {
+    id: string
+    title: string
+    grade: number
+    status: string
+    feedback: string
+  } | null
+  final?: {
+    id: string
+    title: string
+    supervisorGrade: number
+    departmentGrade: number
+    finalGrade: number
+    status: string
+    notes: string
+  } | null
+}
 
 interface StudentDetail {
   id: string
   email: string
-  phone: string
   username: string
-  gender: string
+  phone?: string
+  gender?: string
   majorCode: string
-  classCode: string
+  classCode?: string
   semesterCode: string
+  mssv: string
   createdAt: string
   updatedAt: string
-  backUrl?: string
-  enrollments?: Array<{
-    id: string
-    title: string
-    studentCode: string
-    topicCouncilCode: string
-    finalCode?: string
-    gradeReviewCode?: string
-    midtermCode?: string
-    createdAt: string
-    updatedAt: string
-    midterm?: {
-      id: string
-      title: string
-      grade: number
-      status: string
-      feedback: string
-    } | null
-    final?: {
-      id: string
-      title: string
-      supervisorGrade: number
-      departmentGrade: number
-      finalGrade: number
-      status: string
-      notes: string
-    } | null
-    
-  }>
 }
 
 const GENDER_LABELS: Record<string, string> = {
@@ -63,10 +63,20 @@ export default function StudentDetailPage() {
   const router = useRouter()
   const studentId = params.id as string
 
-  const { data, loading, error } = useQuery(GET_DEPARTMENT_STUDENT_DETAIL, {
-    variables: { search: createDetailSearch(studentId) },
+  // Query for student basic info
+  const { data: studentData, loading: studentLoading, error: studentError } = useQuery(GET_DEPARTMENT_STUDENT_DETAIL, {
+    variables: { search: createDetailSearch(studentId, "student_code") },
     skip: !studentId,
   })
+
+  // Query for student enrollments
+  const { data: enrollmentsData, loading: enrollmentsLoading, error: enrollmentsError } = useQuery(GET_STUDENT_ENROLLMENTS, {
+    variables: { search: createDetailSearch(studentId, "student_code") },
+    skip: !studentId,
+  })
+
+  const loading = studentLoading || enrollmentsLoading
+  const error = studentError || enrollmentsError
 
   if (loading) {
     return (
@@ -91,7 +101,8 @@ export default function StudentDetailPage() {
     )
   }
 
-  const student = (data as any)?.department?.students?.data?.[0]
+  const student: StudentDetail | undefined = (studentData as any)?.department?.students?.data?.[0]
+  const enrollments: Enrollment[] = (enrollmentsData as any)?.department?.enrollments?.data || []
 
   if (!student) {
     return (
@@ -164,7 +175,7 @@ export default function StudentDetailPage() {
                   Giới tính
                 </label>
                 <p className="text-gray-900 dark:text-gray-100">
-                  {GENDER_LABELS[student.gender] || student.gender}
+                  {GENDER_LABELS[student.gender || "ORDER"] || student.gender}
                 </p>
               </div>
             </div>
@@ -199,14 +210,14 @@ export default function StudentDetailPage() {
         </div>
 
         {/* Enrollments */}
-        {student.enrollments && student.enrollments.length > 0 && (
+        {enrollments && enrollments.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
             <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4 flex items-center gap-2">
               <BookOpen className="w-5 h-5" />
               Đề tài đăng ký
             </h2>
             <div className="space-y-4">
-              {student.enrollments.map((enrollment: any) => (
+              {enrollments.map((enrollment) => (
                 <div
                   key={enrollment.id}
                   className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
@@ -274,7 +285,7 @@ export default function StudentDetailPage() {
                       </div>
                     )}
 
-                    
+
                   </div>
                 </div>
               ))}

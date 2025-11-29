@@ -259,10 +259,22 @@ export function useMySupervisedTopicCouncils(search?: SearchRequestInput, option
     fetchPolicy: "network-only",
     skip: options?.skip || false,
   })
+  // topicCouncil get if exists stage_2 duplicate topic_code => only get stage_2 else get stage_1
+  const topicCouncilsData = data?.teacher?.supervisor?.topicCouncils?.data || []
+  const filteredTopicCouncils = topicCouncilsData.filter((topicCouncil, index, self) => {
+    if (topicCouncil.stage === "STAGE_2") {
+      return true
+    }
+    // Check if there is a duplicate with stage_2
+    const hasStage2Duplicate = self.some(
+      (tc) => tc.topicCode === topicCouncil.topicCode && tc.stage === "STAGE_2"
+    )
+    return !hasStage2Duplicate
+  })
 
   return {
-    topicCouncils: data?.teacher?.supervisor?.topicCouncils?.data || [],
-    total: data?.teacher?.supervisor?.topicCouncils?.total || 0,
+    topicCouncils: filteredTopicCouncils,
+    total: filteredTopicCouncils.length,
     loading,
     error,
     refetch,

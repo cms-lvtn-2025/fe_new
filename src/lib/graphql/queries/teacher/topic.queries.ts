@@ -25,15 +25,25 @@ export const GET_MY_SUPERVISED_TOPIC_COUNCILS = gql`
               status
               percentStage1
               percentStage2
+              files {
+                id
+                title
+                file
+                status
+              }
             }
             enrollments {
               id
               studentCode
               student {
                 id
+                mssv
                 username
                 email
               }
+            }
+            council {
+              timeStart
             }
           }
         }
@@ -77,6 +87,12 @@ export const GET_TOPIC_COUNCIL_DETAIL = gql`
                 id
                 title
               }
+              files {
+                id
+                title
+                file
+                status
+              }
             }
             enrollments {
               id
@@ -100,6 +116,12 @@ export const GET_TOPIC_COUNCIL_DETAIL = gql`
                 grade
                 status
                 feedback
+                files {
+                  id
+                  title
+                  file
+                  status
+                }
               }
               final {
                 id
@@ -109,6 +131,12 @@ export const GET_TOPIC_COUNCIL_DETAIL = gql`
                 finalGrade
                 status
                 notes
+                files {
+                  id
+                  title
+                  file
+                  status
+                }
               }
             }
             supervisors {

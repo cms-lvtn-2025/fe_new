@@ -3,11 +3,13 @@
 import { useState, useMemo, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuery, useMutation } from '@apollo/client/react'
-import { GET_DEFENCE_SCHEDULE, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
+import { GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { DELETE_COUNCIL } from '@/lib/graphql/mutations/admin'
-import { Plus, Eye, Trash2, RefreshCw, Search, Filter, Download } from 'lucide-react'
+import { Plus, Trash2, RefreshCw, Search, Filter, Download } from 'lucide-react'
 import Loading from '@/components/common/Loading'
 import type { Council } from '@/types/defence'
+import { GET_COUNCILS, GET_DEFENCE_SCHEDULE_EXPORT_EXCEL } from '@/lib/graphql/queries/admin/council.queries'
+import { councilExport } from '@/lib/utils/export'
 
 interface CouncilsData {
   getAllCouncils: {
@@ -100,7 +102,7 @@ export default function CouncilsManagementPage() {
   }
 
   // Fetch councils
-  const { data, loading, error, refetch } = useQuery<CouncilsData>(GET_DEFENCE_SCHEDULE, {
+  const { data, loading, error, refetch } = useQuery<CouncilsData>(GET_COUNCILS, {
     variables: {
       search: {
         pagination: {
@@ -113,6 +115,17 @@ export default function CouncilsManagementPage() {
     fetchPolicy: 'network-only',
   })
 
+  // Query riêng cho export với tất cả dữ liệu (không phân trang)
+  const { data: exportData, loading: exportLoading, refetch: refetchExport } = useQuery(GET_DEFENCE_SCHEDULE_EXPORT_EXCEL, {
+    variables: {
+      search: {
+        filters: buildFilters(),
+      },
+    },
+    skip: true, // Chỉ fetch khi cần export
+    fetchPolicy: 'network-only',
+  })
+  
   const councils: Council[] = (data as any)?.affair?.councils?.data || []
   const total: number = (data as any)?.affair?.councils?.total || 0
   const totalPages = Math.ceil(total / pageSize)
@@ -192,38 +205,31 @@ export default function CouncilsManagementPage() {
 
   const handleExport = async () => {
     try {
-      const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
-      const token = localStorage.getItem('accessToken')
-
-      const filters = buildFilters()
-      const response = await fetch(`${BACKEND_URL}/api/councils/export`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': token ? `Bearer ${token}` : '',
-        },
-        body: JSON.stringify({
-          filters: filters,
-          semesterCode: selectedSemester !== 'all' ? selectedSemester : undefined,
-        }),
-      })
-
-      if (!response.ok) {
-        throw new Error('Export failed')
+      // Kiểm tra học kỳ
+      if (selectedSemester === 'all') {
+        alert('Vui lòng chọn học kỳ để xuất dữ liệu')
+        return
       }
 
-      const blob = await response.blob()
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `councils_${new Date().toISOString().split('T')[0]}.xlsx`
-      document.body.appendChild(a)
-      a.click()
-      window.URL.revokeObjectURL(url)
-      document.body.removeChild(a)
+      // Fetch data for export
+      const result = await refetchExport()
+
+      if (result.error && !result.data) {
+        alert(`Lỗi khi xuất dữ liệu: ${result.error.message}`)
+        return
+      }
+
+      const councilsData = (result.data as any)?.affair?.councils?.data
+      if (!councilsData || councilsData.length === 0) {
+        alert('Chưa có dữ liệu để xuất')
+        return
+      }
+
+      // Export to Excel
+      councilExport(councilsData)
     } catch (error) {
       console.error('Error exporting:', error)
-      alert('Lỗi khi xuất dữ liệu')
+      alert('Lỗi khi xuất dữ liệu: ' + (error as Error).message)
     }
   }
 

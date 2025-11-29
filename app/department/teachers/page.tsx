@@ -169,7 +169,7 @@ export default function DepartmentTeachersPage() {
                   <tr key={teacher.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className="text-sm font-mono text-gray-900 dark:text-gray-100">
-                        {teacher.id}
+                        {teacher.msgv}
                       </span>
                     </td>
                     <td
