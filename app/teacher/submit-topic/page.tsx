@@ -42,9 +42,9 @@ export default function SubmitTopicPage() {
   })
 
   // Lọc ra các topic có stage = STAGE_DACN (giai đoạn 1)
-  const allTopics = (topicCouncilsData as any)?.getMySupervisedTopicCouncils?.data || []
+  const allTopics = (topicCouncilsData as any)?.teacher?.supervisor?.topicCouncils?.data || []
   const stage1Topics = allTopics.filter((item: any) =>
-    item.stage === 'STAGE_DACN' || item.stage === 'stage_dacn'
+    ((item.stage === 'STAGE_DACN' || item.stage === 'stage_dacn') && item.topic?.status === 'IN_PROGRESS' )
   )
 
   const loading = loadingCreate || loadingCouncil
