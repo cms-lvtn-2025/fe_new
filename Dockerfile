@@ -14,12 +14,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
+# Use placeholders for runtime replacement
+ENV NEXT_PUBLIC_GRAPHQL_ENDPOINT=__NEXT_PUBLIC_GRAPHQL_ENDPOINT__
+ENV NEXT_PUBLIC_BACKEND_URL=__NEXT_PUBLIC_BACKEND_URL__
+ENV NEXT_PUBLIC_TINYMCE_API_KEY=__NEXT_PUBLIC_TINYMCE_API_KEY__
+ENV NEXT_TELEMETRY_DISABLED=1
+
 # Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-
-# Set environment
-ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the application
 RUN yarn build
@@ -40,6 +43,10 @@ RUN adduser --system --uid 1001 nextjs
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+# Copy entrypoint script
+COPY entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
 # Set ownership
 USER nextjs
 
@@ -54,4 +61,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
     CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # Start the application
-CMD ["node", "server.js"]
+CMD ["/app/entrypoint.sh"]
