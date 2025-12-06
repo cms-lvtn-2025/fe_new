@@ -7,7 +7,7 @@ on:
 
 env:
   DOCKER_USERNAME: thaily
-  IMAGE_NAME: fe-server-2
+  IMAGE_NAME: fe-server
 
 jobs:
   build-and-push:
