@@ -49,6 +49,7 @@ export function StudentManagement() {
       },
     },
   })
+
   const semesters = useMemo(() => {
     return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
@@ -265,7 +266,7 @@ export function StudentManagement() {
         </div>
         <button
           onClick={handleSearchSubmit}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+          className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
         >
           Tìm kiếm
         </button>
@@ -319,7 +320,7 @@ export function StudentManagement() {
         {/* Refresh Button */}
         <button
           onClick={handleRefresh}
-          className="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Làm mới"
         >
           <RefreshCw className="w-5 h-5" />
@@ -346,7 +347,7 @@ export function StudentManagement() {
             }
             input.click()
           }}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Upload className="w-5 h-5" />
           <span className="hidden sm:inline">Import</span>
@@ -355,7 +356,7 @@ export function StudentManagement() {
         {/* Export Button */}
         <button
           onClick={() => handleExport(students)}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Download className="w-5 h-5" />
           <span className="hidden sm:inline">Export</span>
@@ -364,7 +365,7 @@ export function StudentManagement() {
         {/* Create Button */}
         <button
           onClick={() => setIsCreateDialogOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
           <span className="hidden sm:inline">Thêm sinh viên</span>
@@ -461,7 +462,7 @@ export function StudentManagement() {
                             setSelectedStudent(student)
                             setIsEditDialogOpen(true)
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          className="cursor-pointer p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Chỉnh sửa"
                         >
                           <Pencil className="w-4 h-4" />
@@ -471,7 +472,7 @@ export function StudentManagement() {
                             setSelectedStudent(student)
                             setIsDeleteDialogOpen(true)
                           }}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                          className="cursor-pointer p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Xóa"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -515,7 +516,7 @@ export function StudentManagement() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Trước
             </button>
@@ -537,7 +538,7 @@ export function StudentManagement() {
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
+                    className={`cursor-pointer px-3 py-1 rounded-lg transition-colors ${
                       currentPage === pageNum
                         ? 'bg-blue-600 text-white'
                         : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -552,7 +553,7 @@ export function StudentManagement() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Sau
             </button>

@@ -10,6 +10,14 @@ import { DeleteTeacherDialog } from './delete-teacher-dialog'
 import { exportTeachers } from '@/lib/utils/export'
 import { uploadFileExcel } from '@/lib/api/file'
 
+export interface TeacherRole {
+  id: string
+  title: string
+  role: string
+  semesterCode: string
+  activate: boolean
+}
+
 export interface Teacher {
   id: string
   email: string
@@ -20,6 +28,58 @@ export interface Teacher {
   semesterCode: string
   createdAt: string
   updatedAt: string
+  roles?: TeacherRole[]
+}
+
+// Map role to display name and color classes for dark mode
+const getRoleDisplay = (role: string) => {
+  const roleMap: Record<string, { label: string; bgClass: string; textClass: string }> = {
+    'HEAD_OF_DEPARTMENT': {
+      label: 'Trưởng khoa',
+      bgClass: 'bg-purple-100 dark:bg-purple-900/40',
+      textClass: 'text-purple-800 dark:text-purple-300'
+    },
+    'DEPUTY_HEAD': {
+      label: 'Phó trưởng khoa',
+      bgClass: 'bg-indigo-100 dark:bg-indigo-900/40',
+      textClass: 'text-indigo-800 dark:text-indigo-300'
+    },
+    'SUPERVISOR': {
+      label: 'GVHD',
+      bgClass: 'bg-blue-100 dark:bg-blue-900/40',
+      textClass: 'text-blue-800 dark:text-blue-300'
+    },
+    'REVIEWER': {
+      label: 'Phản biện',
+      bgClass: 'bg-orange-100 dark:bg-orange-900/40',
+      textClass: 'text-orange-800 dark:text-orange-300'
+    },
+    'COUNCIL_MEMBER': {
+      label: 'TV Hội đồng',
+      bgClass: 'bg-teal-100 dark:bg-teal-900/40',
+      textClass: 'text-teal-800 dark:text-teal-300'
+    },
+    'PRESIDENT': {
+      label: 'Chủ tịch HĐ',
+      bgClass: 'bg-rose-100 dark:bg-rose-900/40',
+      textClass: 'text-rose-800 dark:text-rose-300'
+    },
+    'SECRETARY': {
+      label: 'Thư ký HĐ',
+      bgClass: 'bg-cyan-100 dark:bg-cyan-900/40',
+      textClass: 'text-cyan-800 dark:text-cyan-300'
+    },
+    'TEACHER': {
+      label: 'Giảng viên',
+      bgClass: 'bg-gray-100 dark:bg-gray-700',
+      textClass: 'text-gray-800 dark:text-gray-300'
+    },
+  }
+  return roleMap[role] || {
+    label: role,
+    bgClass: 'bg-gray-100 dark:bg-gray-700',
+    textClass: 'text-gray-800 dark:text-gray-300'
+  }
 }
 
 export function TeacherManagement() {
@@ -217,7 +277,7 @@ export function TeacherManagement() {
         </div>
         <button
           onClick={handleSearchSubmit}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+          className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
         >
           Tìm kiếm
         </button>
@@ -257,7 +317,7 @@ export function TeacherManagement() {
         {/* Refresh Button */}
         <button
           onClick={handleRefresh}
-          className="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Làm mới"
         >
           <RefreshCw className="w-5 h-5" />
@@ -282,7 +342,7 @@ export function TeacherManagement() {
             }
             input.click()
           }}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Upload className="w-5 h-5" />
           <span className="hidden sm:inline">Import</span>
@@ -291,7 +351,7 @@ export function TeacherManagement() {
         {/* Export Button */}
         <button
           onClick={() => handleExport(teachers)}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
         >
           <Download className="w-5 h-5" />
           <span className="hidden sm:inline">Export</span>
@@ -300,7 +360,7 @@ export function TeacherManagement() {
         {/* Create Button */}
         <button
           onClick={() => setIsCreateDialogOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
           <span className="hidden sm:inline">Thêm giảng viên</span>
@@ -328,6 +388,9 @@ export function TeacherManagement() {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Khoa
                 </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
+                  Vai trò
+                </th>
                 <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                   Thao tác
                 </th>
@@ -336,7 +399,7 @@ export function TeacherManagement() {
             <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
               {teachers.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center">
+                  <td colSpan={7} className="px-6 py-12 text-center">
                     <div className="text-gray-500 dark:text-gray-400">
                       {searchTerm || selectedMajor !== 'all'
                         ? 'Không tìm thấy giảng viên nào'
@@ -381,6 +444,28 @@ export function TeacherManagement() {
                       <span className="text-sm text-gray-900 dark:text-gray-100">
                         {teacher.majorCode}
                       </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {teacher.roles && teacher.roles.length > 0 ? (
+                          teacher.roles
+                            .filter(r => r.activate)
+                            .map((role) => {
+                              const display = getRoleDisplay(role.role)
+                              return (
+                                <span
+                                  key={role.id}
+                                  className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium ${display.bgClass} ${display.textClass}`}
+                                  title={role.title || role.role}
+                                >
+                                  {display.label}
+                                </span>
+                              )
+                            })
+                        ) : (
+                          <span className="text-sm text-gray-400 dark:text-gray-500">-</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-right">
                       <div className="flex items-center justify-end gap-2">
@@ -444,7 +529,7 @@ export function TeacherManagement() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Trước
             </button>
@@ -466,7 +551,7 @@ export function TeacherManagement() {
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
+                    className={`cursor-pointer px-3 py-1 rounded-lg transition-colors ${
                       currentPage === pageNum
                         ? 'bg-blue-600 text-white'
                         : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -481,7 +566,7 @@ export function TeacherManagement() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Sau
             </button>

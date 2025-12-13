@@ -1,42 +1,52 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { useQuery } from '@apollo/client/react'
-import { createDetailSearch } from '@/lib/graphql/utils/search-helpers'
-import { GET_STUDENT_DETAIL } from '@/lib/graphql/queries/admin'
-import { ArrowLeft, Mail, Phone, BookOpen, Award, Calendar } from 'lucide-react'
+import React from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useQuery } from "@apollo/client/react";
+import { createDetailSearch } from "@/lib/graphql/utils/search-helpers";
+import { GET_STUDENT_DETAIL } from "@/lib/graphql/queries/admin";
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  BookOpen,
+  Award,
+  Calendar,
+} from "lucide-react";
 
 interface StudentDetail {
-  id: string
-  email: string
-  phone: string
-  username: string
-  gender: string
-  majorCode: string
-  classCode: string
-  semesterCode: string
-  createdAt: string
-  updatedAt: string
-  backUrl?: string 
+  id: string;
+  email: string;
+  phone: string;
+  username: string;
+  gender: string;
+  majorCode: string;
+  classCode: string;
+  semesterCode: string;
+  createdAt: string;
+  updatedAt: string;
+  backUrl?: string;
 }
 
 const GENDER_LABELS: Record<string, string> = {
-  male: 'Nam',
-  female: 'Nữ',
-  other: 'Khác',
-}
+  male: "Nam",
+  female: "Nữ",
+  other: "Khác",
+};
 
 export default function StudentDetailPage() {
-  const params = useParams()
-  const router = useRouter()
-  const studentId = params.id as string
-
+  const params = useParams();
+  const router = useRouter();
+  const studentId = params.id as string;
+  const backUrl = new URLSearchParams(window.location.search).get("backUrl");
   const { data, loading, error } = useQuery(GET_STUDENT_DETAIL, {
-    variables: { search_student: createDetailSearch(studentId), search_enrollment: createDetailSearch(studentId, "student_code", 100) },
+    variables: {
+      search_student: createDetailSearch(studentId),
+      search_enrollment: createDetailSearch(studentId, "student_code", 100),
+    },
     skip: !studentId,
-  })
-  console.log('Student Detail Data:', data)
+  });
+  console.log("Student Detail Data:", data);
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -45,34 +55,13 @@ export default function StudentDetailPage() {
           <p className="text-gray-600 dark:text-gray-400">Đang tải...</p>
         </div>
       </div>
-    )
+    );
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 font-medium mb-2">
-            Lỗi khi tải dữ liệu
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            {error.message}
-          </p>
-          <button
-            onClick={() => router.push('/admin/users')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-          >
-            Quay lại
-          </button>
-        </div>
-      </div>
-    )
-  }
+  const student = (data as any)?.affair?.students?.data?.[0];
+  const enrollments = (data as any)?.affair?.enrollments?.data || [];
 
-  const student = (data as any)?.affair?.students?.data?.[0]
-  const enrollments = (data as any)?.affair?.enrollments?.data || []
-
-  if (!student) {
+  if (error && !student) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -83,14 +72,14 @@ export default function StudentDetailPage() {
             Sinh viên với ID {studentId} không tồn tại
           </p>
           <button
-            onClick={() => router.push('/admin/users')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            onClick={() => router.push(`${backUrl || "/admin/users"}`)}
+            className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
             Quay lại
           </button>
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -99,8 +88,8 @@ export default function StudentDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push('/admin/users')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            onClick={() => router.push(`${backUrl || "/admin/users"}`)}
+            className="cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors dark:text-gray-100"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -108,7 +97,9 @@ export default function StudentDetailPage() {
             <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
               {student.username}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 mt-1">MSSV: {student.mssv || student.id}</p>
+            <p className="text-gray-600 dark:text-gray-400 mt-1">
+              MSSV: {student.mssv || student.id}
+            </p>
           </div>
         </div>
 
@@ -124,7 +115,9 @@ export default function StudentDetailPage() {
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Email
                 </label>
-                <p className="text-gray-900 dark:text-gray-100">{student.email}</p>
+                <p className="text-gray-900 dark:text-gray-100">
+                  {student.email}
+                </p>
               </div>
             </div>
             <div className="flex items-center gap-3">
@@ -133,7 +126,9 @@ export default function StudentDetailPage() {
                 <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                   Số điện thoại
                 </label>
-                <p className="text-gray-900 dark:text-gray-100">{student.phone || 'Chưa cập nhật'}</p>
+                <p className="text-gray-900 dark:text-gray-100">
+                  {student.phone || "Chưa cập nhật"}
+                </p>
               </div>
             </div>
             <div>
@@ -148,19 +143,25 @@ export default function StudentDetailPage() {
               <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Mã ngành
               </label>
-              <p className="mt-1 text-gray-900 dark:text-gray-100">{student.majorCode}</p>
+              <p className="mt-1 text-gray-900 dark:text-gray-100">
+                {student.majorCode}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Lớp
               </label>
-              <p className="mt-1 text-gray-900 dark:text-gray-100">{student.classCode}</p>
+              <p className="mt-1 text-gray-900 dark:text-gray-100">
+                {student.classCode}
+              </p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Học kỳ
               </label>
-              <p className="mt-1 text-gray-900 dark:text-gray-100">{student.semesterCode}</p>
+              <p className="mt-1 text-gray-900 dark:text-gray-100">
+                {student.semesterCode}
+              </p>
             </div>
           </div>
         </div>
@@ -179,14 +180,27 @@ export default function StudentDetailPage() {
                   className="border border-gray-200 dark:border-gray-700 rounded-lg p-4"
                 >
                   <div className="mb-4">
-                    <h3 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
-                      {enrollment.title}
-                    </h3>
+                    {enrollment.topicCouncil?.topicCode && (
+                      <button
+                        onClick={() =>
+                          router.push(
+                            `/admin/topics/${enrollment.topicCouncil?.topicCode}?backUrl=/admin/students/${student.id}`
+                          )
+                        }
+                        className="font-medium text-gray-900 dark:text-gray-100 mb-2 cursor-pointer hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      >
+                        {enrollment.topicCouncil?.topicCode}
+                      </button>
+                    )}
+                    
                     <div className="flex flex-wrap gap-2 text-sm text-gray-600 dark:text-gray-400">
-                      <span>Mã đề tài: {enrollment.topicCouncilCode}</span>
+                      <span>Tên: {enrollment.title}</span>
                       <span>•</span>
                       <span>
-                        Ngày đăng ký: {new Date(enrollment.createdAt).toLocaleDateString('vi-VN')}
+                        Ngày đăng ký:{" "}
+                        {new Date(enrollment.createdAt).toLocaleDateString(
+                          "vi-VN"
+                        )}
                       </span>
                     </div>
                   </div>
@@ -240,8 +254,6 @@ export default function StudentDetailPage() {
                         )}
                       </div>
                     )}
-
-                    
                   </div>
                 </div>
               ))}
@@ -256,20 +268,24 @@ export default function StudentDetailPage() {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
             <div>
-              <span className="text-gray-500 dark:text-gray-400">Ngày tạo:</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                Ngày tạo:
+              </span>
               <p className="text-gray-900 dark:text-gray-100 mt-1">
-                {new Date(student.createdAt).toLocaleString('vi-VN')}
+                {new Date(student.createdAt).toLocaleString("vi-VN")}
               </p>
             </div>
             <div>
-              <span className="text-gray-500 dark:text-gray-400">Cập nhật lần cuối:</span>
+              <span className="text-gray-500 dark:text-gray-400">
+                Cập nhật lần cuối:
+              </span>
               <p className="text-gray-900 dark:text-gray-100 mt-1">
-                {new Date(student.updatedAt).toLocaleString('vi-VN')}
+                {new Date(student.updatedAt).toLocaleString("vi-VN")}
               </p>
             </div>
           </div>
         </div>
       </div>
     </div>
-  )
+  );
 }

@@ -102,10 +102,12 @@ export const GET_STUDENT_DETAIL = gql`
           studentCode
           topicCouncilCode
           finalCode
-          gradeReviewCode
           midtermCode
           createdAt
           updatedAt
+          topicCouncil {
+            topicCode
+          }
           midterm {
             id
             title

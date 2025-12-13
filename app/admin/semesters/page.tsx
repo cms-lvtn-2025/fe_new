@@ -109,7 +109,7 @@ export default function SemestersPage() {
             </div>
             <button
               onClick={handleSearchSubmit}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap cursor-pointer"
             >
               Tìm kiếm
             </button>
@@ -118,7 +118,7 @@ export default function SemestersPage() {
           {/* Create Button */}
           <button
             onClick={() => setIsCreateOpen(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+            className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors cursor-pointer"
           >
             <Plus className="w-5 h-5" />
             Tạo học kỳ mới
@@ -185,14 +185,14 @@ export default function SemestersPage() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => setEditingSemester(semester)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors cursor-pointer"
                           title="Chỉnh sửa"
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setDeletingSemester(semester)}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors cursor-pointer"
                           title="Xóa"
                         >
                           <Trash2 className="w-4 h-4" />

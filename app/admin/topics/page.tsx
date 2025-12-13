@@ -256,7 +256,7 @@ export default function TopicsManagementPage() {
             </div>
             <button
               onClick={handleSearchSubmit}
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+              className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
             >
               Tìm kiếm
             </button>
@@ -296,7 +296,7 @@ export default function TopicsManagementPage() {
             {/* Refresh Button */}
             <button
               onClick={handleRefresh}
-              className="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="cursor-pointer p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               title="Làm mới"
             >
               <RefreshCw className="w-5 h-5" />
@@ -358,7 +358,7 @@ export default function TopicsManagementPage() {
                             sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
                             router.push(`/admin/topics/${topic.id}`)
                           }}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          className="cursor-pointer p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Xem chi tiết"
                         >
                           {topic.title}
@@ -423,14 +423,17 @@ export default function TopicsManagementPage() {
                           </button>
                         )}
 
-                        {/* Reject - For all statuses */}
-                        <button
+                        {topic.status !== "REJECTED" && (
+                          <button
                           onClick={() => setRejectingTopic(topic)}
                           className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Từ chối"
                         >
                           <XCircle className="w-4 h-4" />
                         </button>
+                        )}  
+                        {/* Reject - For all statuses */}
+                        
 
                         {/* Move to IN_PROGRESS - Only for REJECTED */}
                         {topic.status === 'REJECTED' && (
@@ -481,7 +484,7 @@ export default function TopicsManagementPage() {
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Trước
             </button>
@@ -503,7 +506,7 @@ export default function TopicsManagementPage() {
                   <button
                     key={pageNum}
                     onClick={() => handlePageChange(pageNum)}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
+                    className={`cursor-pointer px-3 py-1 rounded-lg transition-colors ${
                       currentPage === pageNum
                         ? 'bg-blue-600 text-white'
                         : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
@@ -518,7 +521,7 @@ export default function TopicsManagementPage() {
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages || totalPages === 0}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               Sau
             </button>

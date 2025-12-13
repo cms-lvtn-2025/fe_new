@@ -137,10 +137,10 @@ export default function DefenceSchedulePage() {
           <p className="text-red-600 dark:text-red-400 font-medium mb-2">
             Lỗi khi tải dữ liệu lịch bảo vệ
           </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
+          <p className="cursor-pointer text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
           <button
             onClick={handleRefresh}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
             Thử lại
           </button>
@@ -183,7 +183,7 @@ export default function DefenceSchedulePage() {
           <select
             value={selectedSemester}
             onChange={(e) => setSelectedSemester(e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">Tất cả học kỳ</option>
             {semesters.map((semester: any) => (
@@ -199,7 +199,7 @@ export default function DefenceSchedulePage() {
           <select
             value={selectedMajor}
             onChange={(e) => setSelectedMajor(e.target.value)}
-            className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="cursor-pointer px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
             <option value="all">Tất cả ngành</option>
             {majors.map((major) => (
@@ -214,7 +214,7 @@ export default function DefenceSchedulePage() {
         <div className="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
           <button
             onClick={() => setViewMode('calendar')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+            className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
               viewMode === 'calendar'
                 ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -225,7 +225,7 @@ export default function DefenceSchedulePage() {
           </button>
           <button
             onClick={() => setViewMode('list')}
-            className={`flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
+            className={`cursor-pointer flex items-center gap-2 px-4 py-2 rounded-md transition-colors ${
               viewMode === 'list'
                 ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm'
                 : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200'
@@ -239,7 +239,7 @@ export default function DefenceSchedulePage() {
         {/* Refresh Button */}
         <button
           onClick={handleRefresh}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
         >
           <RefreshCw className="w-5 h-5" />
           <span className="hidden sm:inline">Làm mới</span>

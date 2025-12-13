@@ -53,6 +53,7 @@ const getStageColor = (stage: string) => {
 export default function CouncilDetailPage() {
   const params = useParams()
   const router = useRouter()
+  const backUrl = new URLSearchParams(window.location.search).get("backUrl");
   const councilId = params.id as string
   const [isAssignTopicsDialogOpen, setIsAssignTopicsDialogOpen] = useState(false)
   const [timeStart, setTimeStart] = useState('')
@@ -124,7 +125,7 @@ export default function CouncilDetailPage() {
         <div className="text-center">
           <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
-          <button onClick={() => router.push('/admin/councils')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
+          <button onClick={() => router.push(backUrl || '/admin/councils')} className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
         </div>
       </div>
     )
@@ -143,8 +144,8 @@ export default function CouncilDetailPage() {
             Hội đồng với ID {councilId} không tồn tại
           </p>
           <button
-            onClick={() => router.push('/admin/councils')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            onClick={() => router.push(backUrl || '/admin/councils')}
+            className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
             Quay lại
           </button>
@@ -154,15 +155,15 @@ export default function CouncilDetailPage() {
   }
 
   const handleTopicClick = (topicCode: string) => {
-    router.push(`/admin/topics/${topicCode}`)
+    router.push(`/admin/topics/${topicCode}?backUrl=/admin/councils/${council.id}`)
   }
 
   const handleStudentClick = (enrollment: any) => {
-    router.push(`/admin/students/${enrollment.studentCode}`)
+    router.push(`/admin/students/${enrollment.studentCode}?backUrl=/admin/councils/${council.id}`)
   }
 
   const handleTeacherClick = (teacher: any) => {
-    router.push(`/admin/teachers/${teacher.id}`)
+    router.push(`/admin/teachers/${teacher.id}?backUrl=/admin/councils/${council.id}`)
   }
 
   const handleTimeChange = (newTime: string) => {
@@ -210,29 +211,14 @@ export default function CouncilDetailPage() {
       // Error is handled by onError callback
     }
   }
-
-  const handleDelete = async () => {
-    if (confirm(`Bạn có chắc chắn muốn xóa hội đồng "${council.title}"?`)) {
-      try {
-        await deleteCouncil({
-          variables: {
-            id: council.id,
-          },
-        })
-      } catch (error) {
-        // Error is handled by onError callback
-      }
-    }
-  }
-
   return (
     <div className="h-full overflow-y-auto">
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push('/admin/councils')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            onClick={() => router.push(backUrl || '/admin/councils')}
+            className="cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors dark:text-gray-100"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -289,10 +275,10 @@ export default function CouncilDetailPage() {
                   type="datetime-local"
                   value={timeStart}
                   onChange={(e) => handleTimeChange(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="cursor-pointer w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
                 {timeStart && (
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  <p className="cursor-pointer text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {format(new Date(timeStart), "dd/MM/yyyy 'lúc' HH:mm", { locale: vi })}
                   </p>
                 )}
@@ -328,7 +314,7 @@ export default function CouncilDetailPage() {
                   <div>
                     <button
                       onClick={() => handleTeacherClick(defence.teacher)}
-                      className="font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                      className="cursor-pointer font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                     >
                       {defence.teacher.username}
                     </button>
@@ -354,7 +340,7 @@ export default function CouncilDetailPage() {
             </h2>
             <button
               onClick={handleAddTopics}
-              className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+              className="cursor-pointer px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
             >
               Thêm đề tài
             </button>
@@ -388,7 +374,7 @@ export default function CouncilDetailPage() {
                       </div>
                       <button
                         onClick={() => handleRemoveTopicFromCouncil(topicCouncil.id, council.id)}
-                        className="p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
+                        className="cursor-pointer p-1 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                         title="Xóa khỏi hội đồng"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -400,7 +386,7 @@ export default function CouncilDetailPage() {
                     onClick={() => handleTopicClick(topicCouncil.topicCode)}
                     className="group text-left w-full mb-3"
                   >
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h3 className="cursor-pointer font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {topicCouncil.topic?.title || topicCouncil.title}
                     </h3>
                   </button>
@@ -419,7 +405,7 @@ export default function CouncilDetailPage() {
                           <div className="flex items-center justify-between mb-3">
                             <button
                               onClick={() => handleStudentClick(enrollment)}
-                              className="flex items-center gap-2 text-gray-900 dark:text-gray-100 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                              className="cursor-pointer flex items-center gap-2 text-gray-900 dark:text-gray-100 font-medium hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
                             >
                               <Users className="w-4 h-4" />
                               {enrollment.student?.username || enrollment.studentCode}
@@ -483,9 +469,11 @@ export default function CouncilDetailPage() {
                                       <div className="flex-1">
                                         <div className="flex items-center gap-2 mb-1">
                                           <Users className="w-4 h-4 text-gray-500 dark:text-gray-400" />
-                                          <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
+                                          <button 
+                                            onClick={() => handleTeacherClick(gd.defence?.teacher)}
+                                          className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                                             {gd.defence?.teacher?.username || 'N/A'}
-                                          </p>
+                                          </button>
                                         </div>
                                         <p className="text-xs text-gray-500 dark:text-gray-400 ml-6">
                                           {gd.defence?.position === 'PRESIDENT'

@@ -29,7 +29,7 @@ export default function UsersManagementPage() {
             <button
               onClick={() => setActiveTab('students')}
               className={`
-                flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors
+                cursor-pointer flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === 'students'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'
@@ -42,7 +42,7 @@ export default function UsersManagementPage() {
             <button
               onClick={() => setActiveTab('teachers')}
               className={`
-                flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors
+                cursor-pointer flex items-center gap-2 px-6 py-4 border-b-2 font-medium text-sm transition-colors
                 ${activeTab === 'teachers'
                   ? 'border-blue-500 text-blue-600 dark:text-blue-400'
                   : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300'

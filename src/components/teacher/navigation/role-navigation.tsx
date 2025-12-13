@@ -161,7 +161,7 @@ export function RoleNavigation({ roles }: RoleNavigationProps) {
             {/* Role Header - Clickable to expand/collapse */}
             <button
               onClick={() => toggleRole(role)}
-              className={`w-full px-4 py-3 flex items-center justify-between ${colors.hover} transition-colors`}
+              className={`w-full px-4 py-3 flex items-center justify-between ${colors.hover} transition-colors cursor-pointer`}
             >
               <div className="flex items-center gap-3">
                 <div

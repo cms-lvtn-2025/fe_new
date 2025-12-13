@@ -20,61 +20,18 @@ export function ViewCouncilDialog({ isOpen, onClose, council }: ViewCouncilDialo
   if (!council) return null
 
   const handleTopicClick = (topicCouncil: any) => {
-    // Lưu data vào sessionStorage
-    const topicData = {
-      id: topicCouncil.topicCode,
-      title: topicCouncil.topic?.title || topicCouncil.title,
-      majorCode: council.majorCode,
-      semesterCode: council.semesterCode,
-      status: 'IN_PROGRESS',
-      percentStage1: 0,
-      percentStage2: 0,
-      createdAt: council.createdAt,
-      updatedAt: council.updatedAt,
-      topicCouncils: [topicCouncil],
-      backUrl: '/admin/defences',
-    }
-    sessionStorage.setItem('topicDetailData', JSON.stringify(topicData))
     router.push(`/admin/topics/${topicCouncil.topicCode}?backUrl=/admin/defences`)
     onClose()
   }
 
   const handleStudentClick = (enrollment: any) => {
-    // Lưu data vào sessionStorage
-    const studentData = {
-      id: enrollment.studentCode,
-      email: enrollment.student.email,
-      phone: '',
-      username: enrollment.student.username,
-      gender: 'male',
-      majorCode: council.majorCode,
-      classCode: '',
-      semesterCode: council.semesterCode,
-      createdAt: council.createdAt || new Date().toISOString(),
-      updatedAt: council.updatedAt || new Date().toISOString(),
-      enrollments: [enrollment],
-      backUrl: '/admin/defences',
-    }
-    sessionStorage.setItem('studentDetailData', JSON.stringify(studentData))
-    router.push(`/admin/students/${enrollment.studentCode}`)
+
+    router.push(`/admin/students/${enrollment.studentCode}?backUrl=/admin/defences`)
     onClose()
   }
 
   const handleTeacherClick = (teacher: any) => {
-    // Lưu data vào sessionStorage
-    const teacherData = {
-      id: teacher.id,
-      email: teacher.email,
-      username: teacher.username,
-      gender: 'male',
-      majorCode: council.majorCode,
-      semesterCode: council.semesterCode,
-      createdAt: council.createdAt || new Date().toISOString(),
-      updatedAt: council.updatedAt || new Date().toISOString(),
-      backUrl: '/admin/defences',
-    }
-    sessionStorage.setItem('teacherDetailData', JSON.stringify(teacherData))
-    router.push(`/admin/teachers/${teacher.id}`)
+    router.push(`/admin/teachers/${teacher.id}?backUrl=/admin/defences`)
     onClose()
   }
 
@@ -123,7 +80,7 @@ export function ViewCouncilDialog({ isOpen, onClose, council }: ViewCouncilDialo
         </h2>
         <button
           onClick={onClose}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <X className="w-6 h-6" />
         </button>
@@ -232,7 +189,7 @@ export function ViewCouncilDialog({ isOpen, onClose, council }: ViewCouncilDialo
                     onClick={() => handleTopicClick(topicCouncil)}
                     className="group text-left w-full"
                   >
-                    <h5 className="font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                    <h5 className="cursor-pointer font-semibold text-gray-900 dark:text-gray-100 mb-2 flex items-center gap-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {topicCouncil.topic?.title || topicCouncil.title}
                       <ExternalLink className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                     </h5>
@@ -285,7 +242,7 @@ export function ViewCouncilDialog({ isOpen, onClose, council }: ViewCouncilDialo
       <div className="flex justify-end gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
         <button
           onClick={onClose}
-          className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors"
+          className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors"
         >
           Đóng
         </button>
