@@ -270,7 +270,7 @@ export default function SubmitTopicPage() {
       <div className="mb-6">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
+          className="cursor-pointer flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
         >
           <ArrowLeft className="w-5 h-5" />
           Quay lại
@@ -300,21 +300,21 @@ export default function SubmitTopicPage() {
           <button
             type="button"
             onClick={() => setMode('new')}
-            className={`p-4 border-2 rounded-lg text-left transition-colors ${
+            className={`cursor-pointer p-4 border-2 rounded-lg text-left transition-colors ${
               mode === 'new'
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
             }`}
           >
             <div className="font-medium text-gray-900 dark:text-gray-100">Tạo đề tài mới</div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 mt-1">
               Tạo đề tài hoàn toàn mới cho giai đoạn 1 (ĐACN) hoặc giai đoạn 2 (LVTN)
             </p>
           </button>
           <button
             type="button"
             onClick={() => setMode('from_stage1')}
-            className={`p-4 border-2 rounded-lg text-left transition-colors ${
+            className={`cursor-pointer p-4 border-2 rounded-lg text-left transition-colors ${
               mode === 'from_stage1'
                 ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20'
                 : 'border-gray-300 dark:border-gray-600 hover:border-gray-400'
@@ -324,7 +324,7 @@ export default function SubmitTopicPage() {
               <RefreshCw className="w-5 h-5 text-green-600" />
               <span className="font-medium text-gray-900 dark:text-gray-100">Tạo từ đề tài giai đoạn 1</span>
             </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="cursor-pointer text-sm text-gray-500 dark:text-gray-400 mt-1">
               Chuyển đề tài đã hoàn thành giai đoạn 1 sang giai đoạn 2 (LVTN)
             </p>
           </button>
@@ -413,7 +413,7 @@ export default function SubmitTopicPage() {
                 <button
                   type="button"
                   onClick={handleAddStudent}
-                  className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
+                  className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
                 >
                   <UserPlus className="w-5 h-5" />
                   Thêm
@@ -425,7 +425,7 @@ export default function SubmitTopicPage() {
                     <span key={code} className="inline-flex items-center gap-1 px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
                       {code}
                       <button type="button" onClick={() => handleRemoveStudent(code)} className="hover:text-red-600">
-                        <X className="w-4 h-4" />
+                        <X className="cursor-pointer w-4 h-4" />
                       </button>
                     </span>
                   ))}
@@ -475,7 +475,7 @@ export default function SubmitTopicPage() {
               type="button"
               onClick={handleTranslateTitle}
               disabled={translating || !formData.title.trim()}
-              className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Dịch tự động sang tiếng Anh"
             >
               {translating ? (
@@ -565,7 +565,7 @@ export default function SubmitTopicPage() {
               type="button"
               onClick={handleAddStudent}
               disabled={formData.studentCodes.length >= formData.maxStudents}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <UserPlus className="w-5 h-5" />
               Thêm
@@ -596,7 +596,7 @@ export default function SubmitTopicPage() {
                     <button
                       type="button"
                       onClick={() => handleRemoveStudent(studentCode)}
-                      className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                      className="cursor-pointer p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                       title="Xóa sinh viên"
                     >
                       <X className="w-5 h-5" />
@@ -716,7 +716,7 @@ export default function SubmitTopicPage() {
           <button
             type="button"
             onClick={handleBack}
-            className="px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="cursor-pointer px-6 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             disabled={loading}
           >
             Hủy
@@ -724,7 +724,7 @@ export default function SubmitTopicPage() {
           <button
             type="submit"
             disabled={loading}
-            className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="cursor-pointer flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? (
               <>

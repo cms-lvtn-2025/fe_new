@@ -108,6 +108,7 @@ export default function CouncilDetailPage() {
   const params = useParams()
   const router = useRouter()
   const councilId = params.id as string
+  const backUrl = new URLSearchParams(window.location.search).get('backUrl') || '/department/councils'
   const [council, setCouncil] = useState<Council | null>(null)
 
   // Modal states
@@ -313,15 +314,15 @@ export default function CouncilDetailPage() {
   }
 
   const handleTopicClick = (topicCode: string) => {
-    router.push(`/department/topics/${topicCode}`)
+    router.push(`/department/topics/${topicCode}?backUrl=/department/councils/${councilId}`)
   }
 
   const handleStudentClick = (enrollment: any) => {
-    router.push(`/department/students/${enrollment.studentCode}`)
+    router.push(`/department/students/${enrollment.studentCode}?backUrl=/department/councils/${councilId}`)
   }
 
   const handleTeacherClick = (teacher: any) => {
-    router.push(`/department/teachers/${teacher.id}`)
+    router.push(`/department/teachers/${teacher.id}?backUrl=/department/councils/${councilId}`)
   }
 
   // Loading state
@@ -336,38 +337,18 @@ export default function CouncilDetailPage() {
     )
   }
 
-  if (error && !council) {
+  if (!council) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
-          <button onClick={() => router.push('/department/councils')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error?.message}</p>
+          <button onClick={() => router.push(backUrl)} className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
         </div>
       </div>
     )
   }
 
-  if (!council) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 font-medium mb-2">
-            Không tìm thấy thông tin hội đồng
-          </p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Hội đồng với ID {councilId} không tồn tại
-          </p>
-          <button
-            onClick={() => router.push('/department/councils')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-          >
-            Quay lại
-          </button>
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div className="h-full overflow-y-auto">
@@ -375,8 +356,8 @@ export default function CouncilDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push('/department/councils')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            onClick={() => router.push(backUrl)}
+            className="cursor-pointer dark:text-gray-100 p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
@@ -458,7 +439,7 @@ export default function CouncilDetailPage() {
 {canEdit && (
               <button
                 onClick={() => setShowAddMemberModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors"
+                className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors"
               >
                 <UserPlus className="w-4 h-4" />
                 Thêm thành viên
@@ -475,7 +456,7 @@ export default function CouncilDetailPage() {
                   <div>
                     <button
                       onClick={() => handleTeacherClick(defence.teacher)}
-                      className="font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
+                      className="cursor-pointer font-medium text-gray-900 dark:text-gray-100 hover:text-blue-600 dark:hover:text-blue-400 transition-colors text-left"
                     >
                       {defence.teacher.username}
                     </button>
@@ -491,7 +472,7 @@ export default function CouncilDetailPage() {
                       <button
                         onClick={() => handleRemoveMember(defence.id)}
                         disabled={removingDefence}
-                        className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
+                        className="cursor-pointer p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
                         title="Xóa thành viên"
                       >
                         <Trash2 className="w-4 h-4" />
@@ -519,7 +500,7 @@ export default function CouncilDetailPage() {
 {canEdit && (
               <button
                 onClick={() => setShowAssignTopicModal(true)}
-                className="flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
+                className="cursor-pointer flex items-center gap-2 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors"
               >
                 <Plus className="w-4 h-4" />
                 Gán đề tài
@@ -559,7 +540,7 @@ export default function CouncilDetailPage() {
                         <button
                           onClick={() => handleRemoveTopic(topicCouncil.id)}
                           disabled={removingTopic}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
+                          className="cursor-pointer p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50"
                           title="Xóa đề tài khỏi hội đồng"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -570,7 +551,7 @@ export default function CouncilDetailPage() {
 
                   <button
                     onClick={() => handleTopicClick(topicCouncil.topicCode)}
-                    className="group text-left w-full mb-3"
+                    className="cursor-pointer group text-left w-full mb-3"
                   >
                     <h3 className="font-semibold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                       {topicCouncil.topic?.title || topicCouncil.title}
@@ -588,7 +569,7 @@ export default function CouncilDetailPage() {
                           <button
                             key={sup.id}
                             onClick={() => handleTeacherClick(sup.teacher)}
-                            className="px-3 py-1 text-sm bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
+                            className="cursor-pointer px-3 py-1 text-sm bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 rounded-md hover:bg-purple-100 dark:hover:bg-purple-900/50 transition-colors"
                           >
                             {sup.teacher.username}
                           </button>
@@ -637,7 +618,7 @@ export default function CouncilDetailPage() {
 
       {/* Modal thêm thành viên */}
       {showAddMemberModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/30 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -649,7 +630,7 @@ export default function CouncilDetailPage() {
                   setSelectedTeacher('')
                   setSelectedPosition('')
                 }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                className="cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -703,14 +684,14 @@ export default function CouncilDetailPage() {
                     setSelectedTeacher('')
                     setSelectedPosition('')
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
+                  className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
                 >
                   Hủy
                 </button>
                 <button
                   onClick={handleAddMember}
                   disabled={addingDefence || !selectedTeacher || !selectedPosition}
-                  className="px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-green-600 hover:bg-green-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {addingDefence ? 'Đang thêm...' : 'Thêm'}
                 </button>
@@ -722,7 +703,7 @@ export default function CouncilDetailPage() {
 
       {/* Modal gán đề tài */}
       {showAssignTopicModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/30 flex items-center justify-center p-4 z-50">
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg w-full">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
@@ -733,7 +714,7 @@ export default function CouncilDetailPage() {
                   setShowAssignTopicModal(false)
                   setSelectedTopicCouncil('')
                 }}
-                className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
+                className="cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -771,14 +752,14 @@ export default function CouncilDetailPage() {
                     setShowAssignTopicModal(false)
                     setSelectedTopicCouncil('')
                   }}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
+                  className="cursor-pointer px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md"
                 >
                   Hủy
                 </button>
                 <button
                   onClick={handleAssignTopic}
                   disabled={assigningTopic || !selectedTopicCouncil}
-                  className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="cursor-pointer px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {assigningTopic ? 'Đang gán...' : 'Gán đề tài'}
                 </button>

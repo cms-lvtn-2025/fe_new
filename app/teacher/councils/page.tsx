@@ -178,7 +178,7 @@ export default function TeacherCouncilsPage() {
         {/* Import Button */}
         <button
           onClick={handleImportExcel}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Import điểm từ Excel"
         >
           <Upload className="w-5 h-5" />
@@ -188,7 +188,7 @@ export default function TeacherCouncilsPage() {
         {/* Export Button */}
         <button
           onClick={handleExportExcel}
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Export điểm ra Excel"
         >
           <Download className="w-5 h-5" />

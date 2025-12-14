@@ -283,7 +283,7 @@ export function GradeDefenceDialog({
         </h2>
         <button
           onClick={handleClose}
-          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+          className="cursor-pointer text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
         >
           <X className="w-6 h-6" />
         </button>
@@ -306,7 +306,7 @@ export function GradeDefenceDialog({
             <button
               type="button"
               onClick={handleAddCriterion}
-              className="flex items-center gap-1 px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+              className="cursor-pointer flex items-center gap-1 px-3 py-1 text-sm bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
             >
               <Plus className="w-4 h-4" />
               Thêm tiêu chí
@@ -364,7 +364,7 @@ export function GradeDefenceDialog({
                     <button
                       type="button"
                       onClick={() => handleRemoveCriterion(actualIndex)}
-                      className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
+                      className="cursor-pointer p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded transition-colors"
                       title="Xóa tiêu chí"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -420,14 +420,14 @@ export function GradeDefenceDialog({
           <button
             type="button"
             onClick={handleClose}
-            className="px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
+            className="cursor-pointer px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors"
             disabled={loading}
           >
             Hủy
           </button>
           <button
             type="submit"
-            className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
+            className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors disabled:opacity-50"
             disabled={loading}
           >
             <Save className="w-4 h-4" />

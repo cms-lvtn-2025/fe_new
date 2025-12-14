@@ -38,6 +38,7 @@ export default function TeacherCouncilDetailPage() {
   const router = useRouter()
   const params = useParams()
   const defenceId = params.id as string
+  const backUrl = new URLSearchParams(window.location.search).get('backUrl') || '/teacher/councils'
   const [isGradeDialogOpen, setIsGradeDialogOpen] = useState(false)
   const [selectedGradeDefence, setSelectedGradeDefence] = useState<any>(null)
 
@@ -47,7 +48,7 @@ export default function TeacherCouncilDetailPage() {
   })
 
   const handleBack = () => {
-    router.push('/teacher/councils')
+    router.push(backUrl)
   }
 
   const handleImportExcel = () => {
@@ -86,8 +87,8 @@ export default function TeacherCouncilDetailPage() {
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400 mb-4">Lỗi: {error.message}</p>
         <button
-          onClick={() => router.push('/teacher/councils')}
-          className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+          onClick={() => router.push(backUrl)}
+          className="cursor-pointer mt-4 text-blue-600 dark:text-blue-400 hover:underline"
         >
           Quay lại danh sách
         </button>
@@ -102,8 +103,8 @@ export default function TeacherCouncilDetailPage() {
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400">Không tìm thấy thông tin hội đồng {defenceId}</p>
         <button
-          onClick={() => router.push('/teacher/councils')}
-          className="mt-4 text-blue-600 dark:text-blue-400 hover:underline"
+          onClick={() => router.push(backUrl)}
+          className="cursor-pointer mt-4 text-blue-600 dark:text-blue-400 hover:underline"
         >
           Quay lại danh sách
         </button>
@@ -145,7 +146,7 @@ export default function TeacherCouncilDetailPage() {
       <div className="mb-6">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
+          className="cursor-pointer flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
         >
           <ArrowLeft className="w-5 h-5" />
           Quay lại
@@ -171,25 +172,6 @@ export default function TeacherCouncilDetailPage() {
                 Đã chấm: {gradedCount}/{studentsWithGrades.length}
               </span>
             </div>
-          </div>
-
-          <div className="flex items-center gap-3">
-            <button
-              onClick={handleImportExcel}
-              className="flex items-center gap-2 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors"
-              title="Import điểm từ Excel"
-            >
-              <Upload className="w-5 h-5" />
-              Import Excel
-            </button>
-            <button
-              onClick={handleExportExcel}
-              className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              title="Export điểm ra Excel"
-            >
-              <Download className="w-5 h-5" />
-              Export Excel
-            </button>
           </div>
         </div>
       </div>
@@ -249,7 +231,7 @@ export default function TeacherCouncilDetailPage() {
                         </div>
                         <button
                           onClick={() => handleGradeStudent(gradeDefence || { enrollmentCode: enrollment.id, defenceCode: defenceData.id })}
-                          className="flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
+                          className="cursor-pointer flex items-center gap-2 px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg transition-colors"
                         >
                           <Edit className="w-4 h-4" />
                           {hasScore ? 'Sửa điểm' : 'Chấm điểm'}

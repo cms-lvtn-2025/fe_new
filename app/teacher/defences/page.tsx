@@ -132,21 +132,7 @@ export default function TeacherDefencesPage() {
   }
 
   const handleViewDetail = (defence: any) => {
-    const defenceData = {
-      id: defence.id,
-      title: defence.title,
-      councilCode: defence.councilCode,
-      teacherCode: defence.teacherCode,
-      position: defence.position,
-      council: defence.council,
-      teacher: defence.teacher,
-      gradeDefences: defence.gradeDefences,
-      createdAt: defence.createdAt,
-      updatedAt: defence.updatedAt,
-      backUrl: '/teacher/defences'
-    }
-    sessionStorage.setItem('defenceDetailData', JSON.stringify(defenceData))
-    router.push(`/teacher/councils/${defence.id}`)
+    router.push(`/teacher/councils/${defence.id}?backUrl=/teacher/defences`)
   }
 
   // Group defences by date
@@ -197,7 +183,7 @@ export default function TeacherDefencesPage() {
         <div className="flex gap-2 border-b border-gray-200 dark:border-gray-700">
           <button
             onClick={() => handleViewModeChange('upcoming')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            className={`cursor-pointer px-4 py-2 font-medium transition-colors border-b-2 ${
               viewMode === 'upcoming'
                 ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'
@@ -207,7 +193,7 @@ export default function TeacherDefencesPage() {
           </button>
           <button
             onClick={() => handleViewModeChange('all')}
-            className={`px-4 py-2 font-medium transition-colors border-b-2 ${
+            className={`cursor-pointer px-4 py-2 font-medium transition-colors border-b-2 ${
               viewMode === 'all'
                 ? 'border-blue-600 text-blue-600 dark:text-blue-400'
                 : 'border-transparent text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100'

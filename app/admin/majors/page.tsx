@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { useQuery, useMutation } from '@apollo/client/react'
+import { useQuery } from '@apollo/client/react'
 import { GET_ALL_MAJORS, GET_ALL_FACULTIES } from '@/lib/graphql/queries/admin'
-import { DELETE_MAJOR } from '@/lib/graphql/mutations/admin'
 import { Plus, Edit, Trash2, RefreshCw, Search, Filter } from 'lucide-react'
 import Loading from '@/components/common/Loading'
+import { Pagination } from '@/components/common/Pagination'
 import { MajorFormDialog } from '@/components/admin/majors/major-form-dialog'
+import { DeleteMajorDialog } from '@/components/admin/majors/delete-major-dialog'
 
 interface Major {
   id: string
@@ -43,6 +44,7 @@ export default function MajorsManagementPage() {
   const [pageSize, setPageSize] = useState(10)
   const [isFormDialogOpen, setIsFormDialogOpen] = useState(false)
   const [selectedMajor, setSelectedMajor] = useState<Major | null>(null)
+  const [deletingMajor, setDeletingMajor] = useState<Major | null>(null)
 
   // Fetch faculties for filter
   const { data: facultiesData } = useQuery<FacultiesData>(GET_ALL_FACULTIES, {
@@ -58,12 +60,12 @@ export default function MajorsManagementPage() {
     return (facultiesData as any)?.affair?.faculties?.data || []
   }, [facultiesData])
 
-  // Build filters
-  const buildFilters = () => {
-    const filters: any[] = []
+  // Build filters with useMemo to prevent unnecessary re-fetches
+  const filters = useMemo(() => {
+    const result: any[] = []
 
     if (selectedFaculty !== 'all') {
-      filters.push({
+      result.push({
         condition: {
           field: 'faculty_code',
           operator: 'EQUAL',
@@ -73,7 +75,7 @@ export default function MajorsManagementPage() {
     }
 
     if (searchTerm.trim()) {
-      filters.push({
+      result.push({
         group: {
           logic: 'OR',
           filters: [
@@ -96,8 +98,8 @@ export default function MajorsManagementPage() {
       })
     }
 
-    return filters
-  }
+    return result
+  }, [selectedFaculty, searchTerm])
 
   // Fetch majors
   const { data, loading, refetch } = useQuery<MajorsData>(GET_ALL_MAJORS, {
@@ -107,24 +109,15 @@ export default function MajorsManagementPage() {
           page: currentPage,
           pageSize: pageSize
         },
-        filters: buildFilters(),
+        filters,
       },
     },
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
   })
 
   const majors: Major[] = (data as any)?.affair?.majors?.data || []
   const total: number = (data as any)?.affair?.majors?.total || 0
   const totalPages = Math.ceil(total / pageSize)
-
-  const [deleteMajor] = useMutation(DELETE_MAJOR, {
-    onCompleted: () => {
-      refetch()
-    },
-    onError: (error) => {
-      alert(`Lỗi khi xóa chuyên ngành: ${error.message}`)
-    },
-  })
 
   const handleRefresh = () => {
     refetch()
@@ -155,18 +148,13 @@ export default function MajorsManagementPage() {
     setIsFormDialogOpen(true)
   }
 
-  const handleDelete = async (major: Major) => {
-    if (confirm(`Bạn có chắc chắn muốn xóa chuyên ngành "${major.title}"?`)) {
-      try {
-        await deleteMajor({
-          variables: {
-            id: major.id,
-          },
-        })
-      } catch (error) {
-        // Error is handled by onError callback
-      }
-    }
+  const handleDelete = (major: Major) => {
+    setDeletingMajor(major)
+  }
+
+  const handleDeleteSuccess = () => {
+    setDeletingMajor(null)
+    refetch()
   }
 
   const getFacultyName = (facultyCode: string) => {
@@ -196,7 +184,7 @@ export default function MajorsManagementPage() {
         </div>
         <button
           onClick={handleCreate}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
         >
           <Plus className="w-5 h-5" />
           Tạo chuyên ngành
@@ -251,7 +239,7 @@ export default function MajorsManagementPage() {
           {/* Refresh Button */}
           <button
             onClick={handleRefresh}
-            className="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            className="cursor-pointer p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
             title="Làm mới"
           >
             <RefreshCw className="w-5 h-5" />
@@ -313,7 +301,7 @@ export default function MajorsManagementPage() {
                         {/* Edit */}
                         <button
                           onClick={() => handleEdit(major)}
-                          className="p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
+                          className="cursor-pointer p-2 text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
                           title="Chỉnh sửa"
                         >
                           <Edit className="w-4 h-4" />
@@ -322,7 +310,7 @@ export default function MajorsManagementPage() {
                         {/* Delete */}
                         <button
                           onClick={() => handleDelete(major)}
-                          className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
+                          className="cursor-pointer p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors"
                           title="Xóa"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -338,80 +326,17 @@ export default function MajorsManagementPage() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          Hiển thị {majors.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} -{' '}
-          {Math.min(currentPage * pageSize, total)} của {total} chuyên ngành
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Page Size Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 dark:text-gray-400">Số dòng:</label>
-            <select
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value))
-                setCurrentPage(1)
-              }}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
-
-          {/* Pagination Buttons */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Trước
-            </button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum: number
-                if (totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
-                } else {
-                  pageNum = currentPage - 2 + i
-                }
-
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum)}
-                    className={`cursor-pointer px-3 py-1 rounded-lg transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-blue-600 text-white'
-                        : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                )
-              })}
-            </div>
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Sau
-            </button>
-          </div>
-        </div>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={total}
+        onPageChange={handlePageChange}
+        onPageSizeChange={(size) => {
+          setPageSize(size)
+          setCurrentPage(1)
+        }}
+      />
 
       {/* Major Form Dialog */}
       <MajorFormDialog
@@ -420,6 +345,16 @@ export default function MajorsManagementPage() {
         major={selectedMajor}
         onSuccess={refetch}
       />
+
+      {/* Delete Major Dialog */}
+      {deletingMajor && (
+        <DeleteMajorDialog
+          isOpen={!!deletingMajor}
+          onClose={() => setDeletingMajor(null)}
+          onSuccess={handleDeleteSuccess}
+          major={deletingMajor}
+        />
+      )}
     </div>
   )
 }

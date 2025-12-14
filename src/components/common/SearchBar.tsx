@@ -46,7 +46,7 @@ export function SearchBar({
           </div>
           <button
             onClick={handleSearchSubmit}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
+            className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors whitespace-nowrap"
           >
             Tìm kiếm
           </button>
@@ -59,7 +59,7 @@ export function SearchBar({
           {onRefresh && (
             <button
               onClick={onRefresh}
-              className="p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+              className="cursor-pointer p-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
               title="Làm mới"
             >
               <RefreshCw className="w-5 h-5" />

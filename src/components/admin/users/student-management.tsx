@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useQuery, useLazyQuery } from '@apollo/client/react'
 import { GET_LIST_STUDENTS, GET_ALL_SEMESTERS } from '@/lib/graphql/queries/admin'
 import { Plus, Pencil, Trash2, Search, RefreshCw, Upload, Download, Filter, Eye } from 'lucide-react'
+import { Pagination } from '@/components/common/Pagination'
 import { StudentFormDialog } from './student-form-dialog'
 import { DeleteStudentDialog } from './delete-student-dialog'
 import { exportStudents } from '@/lib/utils/export'
@@ -54,13 +55,13 @@ export function StudentManagement() {
     return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
 
-  // Build filters for backend - Updated for Backend Schema v2
-  const buildFilters = () => {
-    const filters: any[] = []
+  // Build filters for backend with useMemo to prevent unnecessary re-fetches
+  const filters = useMemo(() => {
+    const result: any[] = []
 
     // Semester filter
     if (selectedSemester !== 'all') {
-      filters.push({
+      result.push({
         condition: {
           field: 'semester_code',
           operator: 'EQUAL',
@@ -69,10 +70,9 @@ export function StudentManagement() {
       })
     }
 
-    // Search filter - với Backend Schema v2, search trong username
-    // Note: OR logic cần được xử lý ở backend, ở đây ta search username
+    // Search filter
     if (searchTerm.trim()) {
-      filters.push({
+      result.push({
         group: {
           logic: 'OR',
           filters: [{
@@ -93,12 +93,6 @@ export function StudentManagement() {
               operator: 'LIKE',
               values: [searchTerm.trim()],
             },
-          }, {
-            condition: {
-              field: 'id',
-              operator: 'LIKE',
-              values: [searchTerm.trim()],
-            },
           }
         ]
         }
@@ -107,7 +101,7 @@ export function StudentManagement() {
 
     // Class filter
     if (selectedClass !== 'all') {
-      filters.push({
+      result.push({
         condition: {
           field: 'class_code',
           operator: 'EQUAL',
@@ -118,7 +112,7 @@ export function StudentManagement() {
 
     // Major filter
     if (selectedMajor !== 'all') {
-      filters.push({
+      result.push({
         condition: {
           field: 'major_code',
           operator: 'EQUAL',
@@ -127,8 +121,8 @@ export function StudentManagement() {
       })
     }
 
-    return filters
-  }
+    return result
+  }, [selectedSemester, searchTerm, selectedClass, selectedMajor])
 
   // Fetch students
   const { data, loading, refetch } = useQuery(GET_LIST_STUDENTS, {
@@ -140,10 +134,10 @@ export function StudentManagement() {
           sortBy: 'created_at',
           descending: true,
         },
-        filters: buildFilters(),
+        filters,
       },
     },
-    fetchPolicy: 'network-only',
+    fetchPolicy: 'cache-and-network',
   })
   const students: Student[] = (data as any)?.affair?.students?.data || []
   const total: number = (data as any)?.affair?.students?.total || 0
@@ -488,78 +482,14 @@ export function StudentManagement() {
       </div>
 
       {/* Pagination */}
-      <div className="flex items-center justify-between">
-        <div className="text-sm text-gray-500 dark:text-gray-400">
-          Hiển thị {students.length > 0 ? (currentPage - 1) * pageSize + 1 : 0} - {Math.min(currentPage * pageSize, total)} của {total} sinh viên
-        </div>
-
-        <div className="flex items-center gap-4">
-          {/* Page Size Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm text-gray-600 dark:text-gray-400">
-              Số dòng:
-            </label>
-            <select
-              value={pageSize}
-              onChange={(e) => handlePageSizeChange(Number(e.target.value))}
-              className="px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-            >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </div>
-
-          {/* Pagination Buttons */}
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              disabled={currentPage === 1}
-              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Trước
-            </button>
-
-            <div className="flex items-center gap-1">
-              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                let pageNum: number
-                if (totalPages <= 5) {
-                  pageNum = i + 1
-                } else if (currentPage <= 3) {
-                  pageNum = i + 1
-                } else if (currentPage >= totalPages - 2) {
-                  pageNum = totalPages - 4 + i
-                } else {
-                  pageNum = currentPage - 2 + i
-                }
-
-                return (
-                  <button
-                    key={pageNum}
-                    onClick={() => handlePageChange(pageNum)}
-                    className={`cursor-pointer px-3 py-1 rounded-lg transition-colors ${
-                      currentPage === pageNum
-                        ? 'bg-blue-600 text-white'
-                        : 'border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
-                    }`}
-                  >
-                    {pageNum}
-                  </button>
-                )
-              })}
-            </div>
-
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
-              className="cursor-pointer px-3 py-1 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              Sau
-            </button>
-          </div>
-        </div>
-      </div>
+      <Pagination
+        currentPage={currentPage}
+        totalPages={totalPages}
+        pageSize={pageSize}
+        totalItems={total}
+        onPageChange={handlePageChange}
+        onPageSizeChange={handlePageSizeChange}
+      />
 
       {/* Dialogs */}
       <StudentFormDialog

@@ -315,9 +315,13 @@ export default function TopicDetailPage() {
                       <h3 className="font-medium text-gray-900 dark:text-gray-100">
                         {tc.title}
                       </h3>
-                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                      <button 
+                        onClick={() => router.push(`/admin/councils/${tc.councilCode}?backUrl=/admin/topics/${topic.id}`)}
+
+                      className="cursor-pointer hover:text-blue-800 text-sm font-medium text-blue-600 dark:text-blue-400">                        
+                      
                         Hội đồng: {tc.councilCode}
-                      </p>
+                      </button>
                     </div>
                     <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400 rounded">
                       {STAGE_LABELS[tc.stage] || tc.stage}

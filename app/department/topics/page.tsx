@@ -188,7 +188,11 @@ export default function DepartmentTopicsPage() {
   }
   const handleDownloadFile = async (fileId: string, filename: string) => {
     try {
-      await downloadFile(fileId, semesterCode.currentSemester?.id || "", filename);
+      await downloadFile(
+        fileId,
+        semesterCode.currentSemester?.id || "",
+        filename
+      );
     } catch (error) {
       alert("Lỗi khi tải xuống file: " + (error as Error).message);
     }
@@ -238,7 +242,7 @@ export default function DepartmentTopicsPage() {
               "Chức năng Import Excel sẽ được triển khai sau khi backend hoàn thiện"
             )
           }
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Import điểm từ Excel"
         >
           <Upload className="w-5 h-5" />
@@ -252,7 +256,7 @@ export default function DepartmentTopicsPage() {
               "Chức năng Export Excel sẽ được triển khai sau khi backend hoàn thiện"
             )
           }
-          className="flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+          className="cursor-pointer flex items-center gap-2 px-4 py-2 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
           title="Export điểm ra Excel"
         >
           <Download className="w-5 h-5" />
@@ -351,7 +355,7 @@ export default function DepartmentTopicsPage() {
                                   topic.files[0].title
                                 );
                               }}
-                              className="p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
+                              className="cursor-pointer p-2 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/30 rounded-lg transition-colors"
                               title="Download file đề tài"
                             >
                               <Download className="w-4 h-4" />
@@ -363,7 +367,7 @@ export default function DepartmentTopicsPage() {
                             <button
                               onClick={() => handleApprove(topic.id)}
                               disabled={approving}
-                              className="p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              className="cursor-pointer p-2 text-green-600 hover:bg-green-50 dark:hover:bg-green-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Phê duyệt"
                             >
                               <CheckCircle className="w-4 h-4" />
@@ -371,14 +375,16 @@ export default function DepartmentTopicsPage() {
                           )}
 
                           {/* Reject */}
-                          <button
-                            onClick={() => handleReject(topic.id)}
-                            disabled={rejecting}
-                            className="p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                            title="Từ chối"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
+                          {topic.status !== "REJECTED" && (
+                            <button
+                              onClick={() => handleReject(topic.id)}
+                              disabled={rejecting}
+                              className="cursor-pointer p-2 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                              title="Từ chối"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </button>
+                          )}
                         </div>
                       </td>
                     </tr>

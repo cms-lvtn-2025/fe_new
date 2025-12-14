@@ -47,7 +47,7 @@ export default function TeacherDetailPage() {
   const params = useParams()
   const router = useRouter()
   const teacherId = params.id as string
-
+  const backUrl = new URLSearchParams(window.location.search).get('backUrl') || '/department/teachers'
   const { data, loading, error } = useQuery(GET_DEPARTMENT_TEACHER_DETAIL, {
     variables: { search: createDetailSearch(teacherId) },
     skip: !teacherId,
@@ -64,21 +64,9 @@ export default function TeacherDetailPage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
-          <button onClick={() => router.push('/department/teachers')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
-        </div>
-      </div>
-    )
-  }
-
   const teacher = (data as any)?.department?.teachers?.data?.[0]
 
-  if (!teacher) {
+  if (error && !teacher) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -89,8 +77,8 @@ export default function TeacherDetailPage() {
             Giảng viên với ID {teacherId} không tồn tại
           </p>
           <button
-            onClick={() => router.push('/department/teachers')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            onClick={() => router.push(backUrl)}
+            className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
             Quay lại
           </button>
@@ -105,8 +93,8 @@ export default function TeacherDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push('/department/teachers')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            onClick={() => router.push(backUrl)}
+            className="cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors dark:text-gray-300"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>

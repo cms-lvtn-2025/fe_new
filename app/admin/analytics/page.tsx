@@ -59,18 +59,19 @@ export default function AnalyticsPage() {
     }
   }, [currentSemester, selectedSemester])
 
-  // Build filters for selected semester
-  const semesterFilters = selectedSemester
-    ? [
-        {
-          condition: {
-            field: 'semester_code',
-            operator: 'EQUAL',
-            values: [selectedSemester],
-          },
+  // Build filters for selected semester with useMemo
+  const semesterFilters = useMemo(() => {
+    if (!selectedSemester) return []
+    return [
+      {
+        condition: {
+          field: 'semester_code',
+          operator: 'EQUAL',
+          values: [selectedSemester],
         },
-      ]
-    : []
+      },
+    ]
+  }, [selectedSemester])
 
   const selectedSemesterData = semesters.find((s: any) => s.id === selectedSemester)
 
@@ -83,6 +84,7 @@ export default function AnalyticsPage() {
       },
     },
     skip: !selectedSemester,
+    fetchPolicy: 'cache-and-network',
   })
 
   const { data: councilsData, loading: councilsLoading } = useQuery(GET_ALL_COUNCILS, {
@@ -93,6 +95,7 @@ export default function AnalyticsPage() {
       },
     },
     skip: !selectedSemester,
+    fetchPolicy: 'cache-and-network',
   })
 
   const { data: studentsData, loading: studentsLoading } = useQuery(GET_LIST_STUDENTS, {
@@ -103,6 +106,7 @@ export default function AnalyticsPage() {
       },
     },
     skip: !selectedSemester,
+    fetchPolicy: 'cache-and-network',
   })
 
   const { data: teachersData, loading: teachersLoading } = useQuery(GET_LIST_TEACHERS, {
@@ -113,6 +117,7 @@ export default function AnalyticsPage() {
       },
     },
     skip: !selectedSemester,
+    fetchPolicy: 'cache-and-network',
   })
 
   // Calculate statistics

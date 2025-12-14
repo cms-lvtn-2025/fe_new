@@ -62,7 +62,7 @@ export default function StudentDetailPage() {
   const params = useParams()
   const router = useRouter()
   const studentId = params.id as string
-
+  const backUrl = new URLSearchParams(window.location.search).get('backUrl') || '/department/students'
   // Query for student basic info
   const { data: studentData, loading: studentLoading, error: studentError } = useQuery(GET_DEPARTMENT_STUDENT_DETAIL, {
     variables: { search: createDetailSearch(studentId, "student_code") },
@@ -89,22 +89,11 @@ export default function StudentDetailPage() {
     )
   }
 
-  if (error) {
-    return (
-      <div className="flex items-center justify-center h-full">
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 font-medium mb-2">Lỗi khi tải dữ liệu</p>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">{error.message}</p>
-          <button onClick={() => router.push('/department/students')} className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors">Quay lại</button>
-        </div>
-      </div>
-    )
-  }
 
-  const student: StudentDetail | undefined = (studentData as any)?.department?.students?.data?.[0]
+  const student: StudentDetail = (studentData as any)?.department?.students?.data?.[0]
   const enrollments: Enrollment[] = (enrollmentsData as any)?.department?.enrollments?.data || []
 
-  if (!student) {
+  if (error && !student) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
@@ -115,8 +104,8 @@ export default function StudentDetailPage() {
             Sinh viên với ID {studentId} không tồn tại
           </p>
           <button
-            onClick={() => router.push('/department/students')}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+            onClick={() => router.push(backUrl)}
+            className="cursor-pointer px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
           >
             Quay lại
           </button>
@@ -131,8 +120,8 @@ export default function StudentDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
           <button
-            onClick={() => router.push('/department/students')}
-            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
+            onClick={() => router.push(backUrl)}
+            className="cursor-pointer p-2 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors dark:text-gray-300"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>

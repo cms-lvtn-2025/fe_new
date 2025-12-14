@@ -47,7 +47,7 @@ export default function TeacherTopicDetailPage() {
   const router = useRouter();
   const params = useParams();
   const topicCouncilId = params.id as string;
-
+  const backUrl = new URLSearchParams(window.location.search).get("backUrl") || "/teacher/topics";
   const [selectedEnrollment, setSelectedEnrollment] = useState<any>(null);
   const [isGradeMidtermModalOpen, setIsGradeMidtermModalOpen] = useState(false);
   const [isGradeFinalModalOpen, setIsGradeFinalModalOpen] = useState(false);
@@ -58,7 +58,7 @@ export default function TeacherTopicDetailPage() {
   });
 
   const handleBack = () => {
-    router.push("/teacher/topics");
+    router.push(backUrl);
   };
 
   const handleDownloadFile = async (fileId: string, filename: string) => {
@@ -103,24 +103,6 @@ export default function TeacherTopicDetailPage() {
     );
   }
 
-  if (error) {
-    return (
-      <div className="text-center py-12">
-        <p className="text-red-600 dark:text-red-400 font-medium mb-2">
-          Lỗi khi tải dữ liệu
-        </p>
-        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-          {error.message}
-        </p>
-        <button
-          onClick={() => router.push("/teacher/topics")}
-          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
-        >
-          Quay lại
-        </button>
-      </div>
-    );
-  }
 
   const topicCouncilData = (data as any)?.teacher?.supervisor?.topicCouncils
     ?.data?.[0];
@@ -128,7 +110,7 @@ export default function TeacherTopicDetailPage() {
   const topic = topicCouncilData?.topic;
   const canGrade = topic?.status === "IN_PROGRESS";
 
-  if (!topicCouncilData) {
+  if (error && !topicCouncilData) {
     return (
       <div className="text-center py-12">
         <p className="text-red-600 dark:text-red-400">
@@ -138,8 +120,8 @@ export default function TeacherTopicDetailPage() {
           TopicCouncil với ID {topicCouncilId} không tồn tại
         </p>
         <button
-          onClick={() => router.push("/teacher/topics")}
-          className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
+          onClick={() => router.push(backUrl)}
+          className="cursor-pointer mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition-colors"
         >
           Quay lại danh sách
         </button>
@@ -156,7 +138,7 @@ export default function TeacherTopicDetailPage() {
       <div className="mb-6">
         <button
           onClick={handleBack}
-          className="flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
+          className="cursor-pointer flex items-center gap-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 mb-4"
         >
           <ArrowLeft className="w-5 h-5" />
           Quay lại
@@ -193,7 +175,7 @@ export default function TeacherTopicDetailPage() {
             {topic.files && topic.files.length > 0 && (
               <button
                 onClick={() => handleDownloadFile(topic.files[0].id, topic.files[0].title)}
-                className="flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
+                className="cursor-pointer flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
                 title="Download file đề tài"
               >
                 <Download className="w-5 h-5" />
@@ -406,7 +388,7 @@ export default function TeacherTopicDetailPage() {
                                 ) : (
                                   <button
                                     onClick={() => handleOpenGradeMidterm(enrollment)}
-                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
+                                    className="cursor-pointer flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 hover:bg-blue-700 text-white rounded transition-colors"
                                     title="Chấm điểm giữa kỳ"
                                   >
                                     <Edit className="w-3 h-3" />
@@ -461,7 +443,7 @@ export default function TeacherTopicDetailPage() {
                                 ) : (
                                   <button
                                     onClick={() => handleOpenGradeFinal(enrollment)}
-                                    className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
+                                    className="cursor-pointer flex items-center gap-1 px-2 py-1 text-xs bg-green-600 hover:bg-green-700 text-white rounded transition-colors"
                                     title="Chấm điểm cuối kỳ"
                                   >
                                     <Edit className="w-3 h-3" />
@@ -530,7 +512,7 @@ export default function TeacherTopicDetailPage() {
                                 <div className="flex items-center gap-1 flex-shrink-0">
                                   <button
                                     onClick={() => handleDownloadFile(file.id, file.title)}
-                                    className="p-1.5 text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded transition-colors"
+                                    className="cursor-pointer p-1.5 text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded transition-colors"
                                     title="Tải xuống"
                                   >
                                     <Download className="w-4 h-4" />
@@ -567,14 +549,14 @@ export default function TeacherTopicDetailPage() {
                                 <div className="flex items-center gap-1 flex-shrink-0">
                                   <button
                                     onClick={() => handleViewFile(file.id)}
-                                    className="p-1.5 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
+                                    className="cursor-pointer p-1.5 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
                                     title="Xem file"
                                   >
                                     <Eye className="w-4 h-4" />
                                   </button>
                                   <button
                                     onClick={() => handleDownloadFile(file.id, file.title)}
-                                    className="p-1.5 text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded transition-colors"
+                                    className="cursor-pointer p-1.5 text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded transition-colors"
                                     title="Tải xuống"
                                   >
                                     <Download className="w-4 h-4" />

@@ -42,110 +42,237 @@ export function exportToExcel(
 }
 
 /**
- * Export students to Excel
+ * Export students to Excel with styled formatting
  * @param students - Array of student objects
- * @param includeFields - Optional array of field names to include (if not provided, includes all fields)
  */
-export function exportStudents(
-  students: Student[],
-  includeFields?: string[]
-): void {
+export function exportStudents(students: Student[]): void {
   if (!students || students.length === 0) {
     alert('Không có dữ liệu sinh viên để xuất')
     return
   }
 
-  // Map data to export format
-  const exportData = students.map((student) => {
-    const row: any = {
-      'Mã sinh viên': student.mssv || '',
-      'Họ và tên': student.username || '',
-      'Email': student.email || '',
-      'Số điện thoại': student.phone || '',
-      'Giới tính': student.gender || '',
-      'Mã ngành': student.majorCode || '',
-      'Mã lớp': student.classCode || '',
-      'Mã học kỳ': student.semesterCode || '',
-      'Ngày tạo': student.createdAt 
-        ? new Date(student.createdAt).toLocaleDateString('vi-VN')
-        : '',
-      'Ngày cập nhật': student.updatedAt
-        ? new Date(student.updatedAt).toLocaleDateString('vi-VN')
-        : '',
+  try {
+    const wb = XLSX.utils.book_new()
+
+    // Styles
+    const headerStyle = {
+      font: { name: "Times New Roman", sz: 12, bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "4472C4" } },
+      border: {
+        top: { style: "thin" }, bottom: { style: "thin" },
+        left: { style: "thin" }, right: { style: "thin" }
+      },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true }
     }
 
-    // If includeFields is provided, only include those fields
-    if (includeFields) {
-      const filteredRow: any = {}
-      includeFields.forEach((field) => {
-        if (row[field] !== undefined) {
-          filteredRow[field] = row[field]
+    const cellStyle = {
+      font: { name: "Times New Roman", sz: 11 },
+      border: {
+        top: { style: "thin" }, bottom: { style: "thin" },
+        left: { style: "thin" }, right: { style: "thin" }
+      },
+      alignment: { vertical: "center" }
+    }
+
+    const centerCellStyle = {
+      ...cellStyle,
+      alignment: { horizontal: "center", vertical: "center" }
+    }
+
+    // Headers
+    const headers = [
+      "STT", "Mã sinh viên", "Họ và tên", "Email",
+      "Số điện thoại", "Giới tính", "Mã ngành", "Mã lớp"
+    ]
+
+    // Data rows
+    const dataRows = students.map((student, index) => [
+      index + 1,
+      student.mssv || '',
+      student.username || '',
+      student.email || '',
+      student.phone || '',
+      student.gender === 'MALE' ? 'Nam' : student.gender === 'FEMALE' ? 'Nữ' : 'Khác',
+      student.majorCode || '',
+      student.classCode || '',
+    ])
+
+    const wsData = [headers, ...dataRows]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 5 },   // STT
+      { wch: 15 },  // Mã SV
+      { wch: 25 },  // Họ tên
+      { wch: 30 },  // Email
+      { wch: 15 },  // SĐT
+      { wch: 10 },  // Giới tính
+      { wch: 12 },  // Mã ngành
+      { wch: 12 },  // Mã lớp
+    ]
+
+    // Apply styles
+    const range = XLSX.utils.decode_range(ws['!ref']!)
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
+        if (!ws[cellAddress]) continue
+
+        if (R === 0) {
+          ws[cellAddress].s = headerStyle
+        } else {
+          // STT và Giới tính căn giữa
+          if (C === 0 || C === 5) {
+            ws[cellAddress].s = centerCellStyle
+          } else {
+            ws[cellAddress].s = cellStyle
+          }
         }
-      })
-      return filteredRow
+      }
     }
 
-    return row
-  })
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh sách sinh viên')
 
-  const timestamp = new Date().toISOString().split('T')[0]
-  const filename = `students_${timestamp}.xlsx`
-  
-  exportToExcel(exportData, filename, 'Sinh viên')
+    const timestamp = new Date().toISOString().split('T')[0]
+    XLSX.writeFile(wb, `Danh_sach_sinh_vien_${timestamp}.xlsx`)
+  } catch (error) {
+    console.error('Error exporting students:', error)
+    alert('Lỗi khi xuất dữ liệu: ' + (error as Error).message)
+  }
 }
 
 /**
- * Export teachers to Excel
+ * Export teachers to Excel with styled formatting
  * @param teachers - Array of teacher objects
- * @param includeFields - Optional array of field names to include (if not provided, includes all fields)
  */
-export function exportTeachers(
-  teachers: Teacher[],
-  includeFields?: string[]
-): void {
+export function exportTeachers(teachers: Teacher[]): void {
   if (!teachers || teachers.length === 0) {
     alert('Không có dữ liệu giáo viên để xuất')
     return
   }
 
-  // Map data to export format
-  const exportData = teachers.map((teacher) => {
-    const row: any = {
-      'Mã giáo viên': teacher.id || teacher.msgv || '',
-      'Họ và tên': teacher.username || '',
-      'Email': teacher.email || '',
-      'Giới tính': teacher.gender == "MALE" ? 'Nam' : teacher.gender == "FEMALE" ? 'Nữ' : 'Khác',
-      'Mã ngành': teacher.majorCode || '',
-      'Mã học kỳ': teacher.semesterCode || '',
-      'x-teacher': teacher.roles?.some(role => role.role === 'TEACHER') ? 'X' : '', 
-      'x-department': teacher.roles?.some(role => role.role === 'DEPARTMENT_LECTURER') ? 'X' : '',
-      'x-affair': teacher.roles?.some(role => role.role === 'ACADEMIC_AFFAIRS_STAFF') ? 'X' : '',
-      'Ngày tạo': teacher.createdAt
-        ? new Date(teacher.createdAt).toLocaleDateString('vi-VN')
-        : '',
-      'Ngày cập nhật': teacher.updatedAt
-        ? new Date(teacher.updatedAt).toLocaleDateString('vi-VN')
-        : '',
+  try {
+    const wb = XLSX.utils.book_new()
+
+    // Styles
+    const headerStyle = {
+      font: { name: "Times New Roman", sz: 12, bold: true, color: { rgb: "FFFFFF" } },
+      fill: { fgColor: { rgb: "2E7D32" } }, // Màu xanh lá đậm cho giáo viên
+      border: {
+        top: { style: "thin" }, bottom: { style: "thin" },
+        left: { style: "thin" }, right: { style: "thin" }
+      },
+      alignment: { horizontal: "center", vertical: "center", wrapText: true }
     }
 
-    // If includeFields is provided, only include those fields
-    if (includeFields) {
-      const filteredRow: any = {}
-      includeFields.forEach((field) => {
-        if (row[field] !== undefined) {
-          filteredRow[field] = row[field]
+    const cellStyle = {
+      font: { name: "Times New Roman", sz: 11 },
+      border: {
+        top: { style: "thin" }, bottom: { style: "thin" },
+        left: { style: "thin" }, right: { style: "thin" }
+      },
+      alignment: { vertical: "center" }
+    }
+
+    const centerCellStyle = {
+      ...cellStyle,
+      alignment: { horizontal: "center", vertical: "center" }
+    }
+
+    // Style cho cột vai trò - có wrap text
+    const rolesCellStyle = {
+      ...cellStyle,
+      alignment: { vertical: "center", wrapText: true }
+    }
+
+    // Helper: Map role to Vietnamese
+    const getRoleName = (role: string) => {
+      const roleMap: Record<string, string> = {
+        'HEAD_OF_DEPARTMENT': 'Trưởng khoa',
+        'DEPUTY_HEAD': 'Phó trưởng khoa',
+        'SUPERVISOR': 'GVHD',
+        'REVIEWER': 'Phản biện',
+        'COUNCIL_MEMBER': 'TV Hội đồng',
+        'PRESIDENT': 'Chủ tịch HĐ',
+        'SECRETARY': 'Thư ký HĐ',
+        'TEACHER': 'Giảng viên',
+        'DEPARTMENT_LECTURER': 'GV Khoa',
+        'ACADEMIC_AFFAIRS_STAFF': 'Phòng đào tạo',
+      }
+      return roleMap[role] || role
+    }
+
+    // Headers
+    const headers = [
+      "STT", "Mã GV", "Họ và tên", "Email",
+      "Giới tính", "Mã ngành", "Vai trò"
+    ]
+
+    // Data rows
+    const dataRows = teachers.map((teacher, index) => {
+      // Lấy danh sách vai trò đang active
+      const activeRoles = teacher.roles
+        ?.filter(r => r.activate)
+        ?.map(r => getRoleName(r.role))
+        ?.join(', ') || '-'
+
+      return [
+        index + 1,
+        teacher.msgv || '',
+        teacher.username || '',
+        teacher.email || '',
+        teacher.gender === 'MALE' ? 'Nam' : teacher.gender === 'FEMALE' ? 'Nữ' : 'Khác',
+        teacher.majorCode || '',
+        activeRoles,
+      ]
+    })
+
+    const wsData = [headers, ...dataRows]
+    const ws = XLSX.utils.aoa_to_sheet(wsData)
+
+    // Column widths
+    ws['!cols'] = [
+      { wch: 5 },   // STT
+      { wch: 12 },  // Mã GV
+      { wch: 25 },  // Họ tên
+      { wch: 30 },  // Email
+      { wch: 10 },  // Giới tính
+      { wch: 12 },  // Mã ngành
+      { wch: 35 },  // Vai trò
+    ]
+
+    // Apply styles
+    const range = XLSX.utils.decode_range(ws['!ref']!)
+    for (let R = range.s.r; R <= range.e.r; ++R) {
+      for (let C = range.s.c; C <= range.e.c; ++C) {
+        const cellAddress = XLSX.utils.encode_cell({ r: R, c: C })
+        if (!ws[cellAddress]) continue
+
+        if (R === 0) {
+          ws[cellAddress].s = headerStyle
+        } else {
+          // STT và Giới tính căn giữa
+          if (C === 0 || C === 4) {
+            ws[cellAddress].s = centerCellStyle
+          } else if (C === 6) {
+            // Cột Vai trò cần wrap text
+            ws[cellAddress].s = rolesCellStyle
+          } else {
+            ws[cellAddress].s = cellStyle
+          }
         }
-      })
-      return filteredRow
+      }
     }
 
-    return row
-  })
+    XLSX.utils.book_append_sheet(wb, ws, 'Danh sách giảng viên')
 
-  const timestamp = new Date().toISOString().split('T')[0]
-  const filename = `teachers_${timestamp}.xlsx`
-  
-  exportToExcel(exportData, filename, 'Giáo viên')
+    const timestamp = new Date().toISOString().split('T')[0]
+    XLSX.writeFile(wb, `Danh_sach_giang_vien_${timestamp}.xlsx`)
+  } catch (error) {
+    console.error('Error exporting teachers:', error)
+    alert('Lỗi khi xuất dữ liệu: ' + (error as Error).message)
+  }
 }
 
 /**
