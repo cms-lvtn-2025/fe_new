@@ -132,7 +132,7 @@ export default function TeacherDefencesPage() {
   }
 
   const handleViewDetail = (defence: any) => {
-    router.push(`/teacher/councils/${defence.id}?backUrl=/teacher/defences`)
+    router.push(`/teacher/councils/${defence.id}?backUrl=/teacher/defences  `)
   }
 
   // Group defences by date
