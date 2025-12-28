@@ -133,10 +133,7 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
     e.preventDefault()
     setError('')
 
-    if (!formData.id.trim()) {
-      setError('Vui lòng nhập mã giảng viên')
-      return
-    }
+    
 
     if (!formData.email.trim()) {
       setError('Vui lòng nhập email')
@@ -165,6 +162,10 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
 
     try {
       if (isEdit) {
+        if (!formData.id.trim()) {
+      setError('Vui lòng nhập id giảng viên')
+      return
+    }
         await updateTeacher({
           variables: {
             id: formData.id,
@@ -179,11 +180,15 @@ export function TeacherFormDialog({ isOpen, onClose, teacher, onSuccess }: Teach
           },
         })
       } else {
+        if (!formData.msgv.trim()) {
+      setError('Vui lòng nhập mã giảng viên')
+      return
+    }
         await createTeacher({
           variables: {
             input: {
-              id: formData.id,
-              msgv: formData.id,
+              id: formData.msgv,
+              msgv: formData.msgv,
               email: formData.email,
               username: formData.username,
               gender: formData.gender,

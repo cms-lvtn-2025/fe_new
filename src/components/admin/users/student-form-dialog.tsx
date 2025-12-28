@@ -130,11 +130,7 @@ export function StudentFormDialog({ isOpen, onClose, student, onSuccess }: Stude
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-
-    if (!formData.id.trim()) {
-      setError('Vui lòng nhập mã sinh viên')
-      return
-    }
+    
 
     if (!formData.email.trim()) {
       setError('Vui lòng nhập email')
@@ -162,7 +158,12 @@ export function StudentFormDialog({ isOpen, onClose, student, onSuccess }: Stude
     }
 
     try {
+      
       if (isEdit) {
+        if (!formData.id.trim()) {
+      setError('Vui lòng nhập id sinh viên')
+      return
+    }
         await updateStudent({
           variables: {
             id: formData.id,
@@ -178,11 +179,15 @@ export function StudentFormDialog({ isOpen, onClose, student, onSuccess }: Stude
           },
         })
       } else {
+        if (!formData.mssv.trim()) {
+      setError('Vui lòng nhập mã sinh viên')
+      return
+    }
         await createStudent({
           variables: {
             input: {
-              id: formData.id,
-              mssv: formData.id,
+              id: formData.mssv,
+              mssv: formData.mssv,
               email: formData.email,
               phone: formData.phone,
               username: formData.username,
