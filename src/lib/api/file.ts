@@ -1,6 +1,7 @@
+import { useSemester } from '../contexts/semester-context'
 import { getValidAccessToken } from './auth'
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
+const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://be.thaily.id.vn'
 
 export interface FileInfo {
   id: string
@@ -54,13 +55,13 @@ export async function getFileInfo(fileId: string, semester: string): Promise<Fil
 /**
  * Get presigned download URL for a file
  */
-export async function getFileURL(fileId: string, semester: string): Promise<string> {
+export async function getFileURL(fileId: string, semester: string, excel: boolean): Promise<string> {
   const token = await getValidAccessToken()
   if (!token) {
     throw new Error('No access token available')
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/files/${fileId}/url`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/files/${fileId}/url${excel ? '?excel=true' : ''}`, {
     method: 'GET',
     headers: {
       'Authorization': `Bearer ${token}`,
@@ -84,17 +85,18 @@ export async function getFileURL(fileId: string, semester: string): Promise<stri
 /**
  * Delete a file by ID
  */
-export async function deleteFile(fileId: string): Promise<void> {
+export async function deleteFile(fileId: string, semester: string, excel: boolean = false): Promise<void> {
   const token = await getValidAccessToken()
   if (!token) {
     throw new Error('No access token available')
   }
 
-  const response = await fetch(`${API_BASE_URL}/api/v1/files/${fileId}`, {
+  const response = await fetch(`${API_BASE_URL}/api/v1/files/${fileId}${excel ? '?excel=true' : ''}`, {
     method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json',
+      'x-semester': semester,
     },
   })
 
@@ -104,30 +106,13 @@ export async function deleteFile(fileId: string): Promise<void> {
   }
 }
 
-/**
- * Get file blob (public endpoint, uses token in query string)
- * Returns a blob URL that can be used to view the file
- */
-export async function getFileBlobURL(fileId: string): Promise<string> {
-  const token = await getValidAccessToken()
-  if (!token) {
-    throw new Error('No access token available')
-  }
-
-  const url = new URL(`${API_BASE_URL}/api/v1/files/blob`)
-  url.searchParams.append('id', fileId)
-  url.searchParams.append('token', token)
-
-  // Return the URL directly - browser will handle the blob
-  return url.toString()
-}
 
 /**
  * Download file using presigned URL
  */
-export async function downloadFile(fileId: string, semester: string, filename?: string): Promise<void> {
+export async function downloadFile(fileId: string, semester: string, filename?: string, excel: boolean = false): Promise<void> {
   try {
-    const url = await getFileURL(fileId, semester)
+    const url = await getFileURL(fileId, semester, excel)
     if (!url) {
       throw new Error('No download URL available')
     }
@@ -255,6 +240,7 @@ export async function uploadFinalFile(
 export async function uploadFileExcel(
   file: File,
   semesterCode: string,
+  currentSemesterCode: string,
   type: string = 'user-for-affair',
   title?: string,
 ): Promise<FileInfo> {
@@ -269,12 +255,12 @@ export async function uploadFileExcel(
     formData.append('title', title)
   }
   formData.append('table_type', "ORDER")
-
+  formData.append('semester_code', semesterCode)
   const response = await fetch(`${API_BASE_URL}/api/v1/files/upload/${type}`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${token}`,
-      'x-semester': semesterCode
+      'x-semester': currentSemesterCode,
     },
     body: formData,
   })
@@ -287,3 +273,53 @@ export async function uploadFileExcel(
   const data = await response.json()
   return data.data || data
 }
+
+/**
+ * Excel import job interface
+ */
+export interface ExcelJob {
+  id: string
+  file: string
+  title: string
+  option: string
+  table_type: number
+  table_id: string
+  status: 'pending' | 'processing'
+  // messages can be string[] (errors) or object[] (success data)
+  messages: (string | Record<string, unknown>)[]
+  upload_type: string
+  sum: number
+  current: number
+  created_by: string
+  created_at: string
+  updated_at: string
+}
+
+/**
+ * Get list of Excel import jobs
+ */
+export async function getExcelJobs(semesterCode: string, role: string = "affair"): Promise<ExcelJob[]> {
+  const token = await getValidAccessToken()
+  if (!token) {
+    throw new Error('No access token available')
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/v1/files/list/excel`, {
+    method: 'GET',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json',
+      'x-semester': semesterCode,
+      'x-role': role
+    },
+  })
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to get excel jobs' }))
+    throw new Error(error.message || `HTTP error! status: ${response.status}`)
+  }
+
+  const data = await response.json()
+  return data.data || data || []
+}
+

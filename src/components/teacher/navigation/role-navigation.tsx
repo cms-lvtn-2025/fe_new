@@ -22,6 +22,7 @@ import {
   Settings,
   ChevronDown,
   Send,
+  FileSpreadsheet,
 } from "lucide-react";
 import { LucideIcon } from "lucide-react";
 
@@ -77,6 +78,7 @@ const ROLE_NAVIGATION: Record<RoleType, NavigationItem[]> = {
     { label: "Quản lý khoa", href: "/admin/faculties", icon: Building2 },
     { label: "Phân tích học kỳ", href: "/admin/analytics", icon: BarChart3 },
     { label: "Cài đặt chung", href: "/admin/settings", icon: Settings },
+    { label: "Quản lý Import Excel", href: "/admin/excel", icon: FileSpreadsheet },
   ],
 };
 

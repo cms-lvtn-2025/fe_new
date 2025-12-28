@@ -22,7 +22,7 @@ import {
   AlertCircle,
 } from "lucide-react";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { downloadFile, getFileBlobURL } from "@/lib/api/file";
+import { downloadFile } from "@/lib/api/file";
 import { useState } from "react";
 import GradeMidtermModal from "@/components/teacher/grading/GradeMidtermModal";
 import GradeFinalModal from "@/components/teacher/grading/GradeFinalModal";
@@ -69,14 +69,6 @@ export default function TeacherTopicDetailPage() {
     }
   };
 
-  const handleViewFile = async (fileId: string) => {
-    try {
-      const url = await getFileBlobURL(fileId);
-      window.open(url, "_blank");
-    } catch (error) {
-      alert("Lỗi khi mở file: " + (error as Error).message);
-    }
-  };
 
   const handleOpenGradeMidterm = (enrollment: any) => {
     setSelectedEnrollment(enrollment);
@@ -547,13 +539,7 @@ export default function TeacherTopicDetailPage() {
                                   />
                                 </div>
                                 <div className="flex items-center gap-1 flex-shrink-0">
-                                  <button
-                                    onClick={() => handleViewFile(file.id)}
-                                    className="cursor-pointer p-1.5 text-blue-600 hover:bg-blue-100 dark:hover:bg-blue-900/40 rounded transition-colors"
-                                    title="Xem file"
-                                  >
-                                    <Eye className="w-4 h-4" />
-                                  </button>
+                                  
                                   <button
                                     onClick={() => handleDownloadFile(file.id, file.title)}
                                     className="cursor-pointer p-1.5 text-purple-600 hover:bg-purple-100 dark:hover:bg-purple-900/40 rounded transition-colors"

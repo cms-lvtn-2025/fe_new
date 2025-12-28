@@ -8,8 +8,6 @@ import { GET_MY_ENROLLMENT_DETAIL } from "@/lib/graphql/queries/student";
 import {
   downloadFile,
   deleteFile,
-  getFileURL,
-  getFileBlobURL,
   uploadMidtermFile,
   uploadFinalFile,
 } from "@/lib/api/file";
@@ -170,7 +168,7 @@ export default function ThesisDetailPage({
     }
 
     try {
-      await deleteFile(fileId);
+      await deleteFile(fileId, semesterCode.currentSemester?.id || "");
       alert("Đã xóa file thành công!");
       refetch();
     } catch (error) {

@@ -15,8 +15,8 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Set environment variables for build
-ENV NEXT_PUBLIC_GRAPHQL_ENDPOINT=http://10.47.181.205:8080/query
-ENV NEXT_PUBLIC_BACKEND_URL=http://10.47.181.205:8080
+ENV NEXT_PUBLIC_GRAPHQL_ENDPOINT=https://api-lvtn.thaily.id.vn/query
+ENV NEXT_PUBLIC_BACKEND_URL=https://api-lvtn.thaily.id.vn
 ENV NEXT_PUBLIC_TINYMCE_API_KEY=6gl3kh3iyt00cqttevnid4y02ewkeof4n4bzapfkjqcnplqe
 ENV NEXT_TELEMETRY_DISABLED=1
 

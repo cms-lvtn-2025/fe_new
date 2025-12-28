@@ -10,6 +10,7 @@ import { StudentFormDialog } from './student-form-dialog'
 import { DeleteStudentDialog } from './delete-student-dialog'
 import { exportStudents } from '@/lib/utils/export'
 import { uploadFileExcel } from '@/lib/api/file'
+import { useSemester } from '@/lib/contexts/semester-context'
 
 export interface Student {
   id: string
@@ -34,7 +35,7 @@ export function StudentManagement() {
   const [selectedSemester, setSelectedSemester] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-
+  const { currentSemester } = useSemester()
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -208,6 +209,7 @@ export function StudentManagement() {
       uploadFileExcel(
         file,
         semesterCode === 'all' ? '' : semesterCode,
+        currentSemester ? currentSemester.id : '',
         'student-for-affair',
         'Danh sách sinh viên'
       ).then(() => {

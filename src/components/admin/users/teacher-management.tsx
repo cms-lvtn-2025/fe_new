@@ -10,6 +10,7 @@ import { TeacherFormDialog } from './teacher-form-dialog'
 import { DeleteTeacherDialog } from './delete-teacher-dialog'
 import { exportTeachers } from '@/lib/utils/export'
 import { uploadFileExcel } from '@/lib/api/file'
+import { useSemester } from '@/lib/contexts/semester-context'
 
 export interface TeacherRole {
   id: string
@@ -91,7 +92,7 @@ export function TeacherManagement() {
   const [selectedSemester, setSelectedSemester] = useState<string>('all')
   const [currentPage, setCurrentPage] = useState(1)
   const [pageSize, setPageSize] = useState(10)
-
+  const { currentSemester } = useSemester()
   // Dialog states
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
@@ -225,6 +226,7 @@ export function TeacherManagement() {
         uploadFileExcel(
           file,
           semesterCode === 'all' ? '' : semesterCode,
+          currentSemester ? currentSemester.id : '',
           'teacher-for-affair',
           'Danh sách giảng viên'
         ).then(() => {
