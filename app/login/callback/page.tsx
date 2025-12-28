@@ -88,8 +88,8 @@ function CallbackContent() {
 
               console.log('[Login] Profile result:', profileResult.data)
 
-              if ((profileResult.data as any)?.getMyTeacherProfile?.roles) {
-                const roles = (profileResult.data as any).getMyTeacherProfile.roles
+              if ((profileResult.data as any)?.teacher?.me?.roles) {
+                const roles = (profileResult.data as any).teacher.me.roles
                 console.log('[Login] Found roles:', roles)
                 console.log('[Login] Roles structure:', JSON.stringify(roles, null, 2))
 
