@@ -50,8 +50,8 @@ export function StudentManagement() {
         filters: [],
       },
     },
+    fetchPolicy: 'cache-first',
   })
-
   const semesters = useMemo(() => {
     return (semestersData as any)?.affair?.semesters?.data || []
   }, [semestersData])
@@ -172,13 +172,13 @@ export function StudentManagement() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    refetch()
+    // Apollo sẽ tự động refetch khi variables thay đổi, không cần gọi refetch()
   }
 
   const handlePageSizeChange = (size: number) => {
     setPageSize(size)
     setCurrentPage(1)
-    refetch()
+    // Apollo sẽ tự động refetch khi variables thay đổi, không cần gọi refetch()
   }
 
   // Handle search submit

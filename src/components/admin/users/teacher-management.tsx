@@ -107,6 +107,7 @@ export function TeacherManagement() {
         filters: [],
       },
     },
+    fetchPolicy: 'cache-first',
   })
 
   const semesters = useMemo(() => {
@@ -195,13 +196,13 @@ export function TeacherManagement() {
 
   const handlePageChange = (page: number) => {
     setCurrentPage(page)
-    refetch()
+    // Apollo sẽ tự động refetch khi variables thay đổi
   }
 
   const handlePageSizeChange = (size: number) => {
     setPageSize(size)
     setCurrentPage(1)
-    refetch()
+    // Apollo sẽ tự động refetch khi variables thay đổi
   }
 
   const handleSearchSubmit = () => {
